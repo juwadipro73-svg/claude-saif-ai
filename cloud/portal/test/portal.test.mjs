@@ -10,7 +10,10 @@ import { spawn } from 'node:child_process';
 import net from 'node:net';
 
 function startPortal(env = {}) {
-  const child = spawn('npx', ['tsx', 'server.ts'], {
+  // Start the server as a direct child, not through `npx tsx`: with wrapper processes in
+  // between, child.kill() stops only the wrapper, and the surviving server keeps the pipes
+  // below open, so the test run never exits although every assertion has passed.
+  const child = spawn(process.execPath, ['--import', 'tsx', 'server.ts'], {
     cwd: new URL('..', import.meta.url).pathname,
     env: { ...process.env, ...env, DISABLE_HMR: 'true' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -21,12 +24,20 @@ function startPortal(env = {}) {
   return { child, getStdout: () => stdout, getStderr: () => stderr };
 }
 
+function hasExited(child) {
+  return child.exitCode !== null || child.signalCode !== null;
+}
+
 function waitFor(portal, marker = 'Portal listening', timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
     const start = Date.now();
     const check = () => {
       if (portal.getStdout().includes(marker) || portal.getStderr().includes(marker)) {
         return resolve();
+      }
+      // A crash at startup is reported at once instead of after the full timeout.
+      if (hasExited(portal.child)) {
+        return reject(new Error('Portal exited before it was ready: ' + portal.getStderr().slice(-500)));
       }
       if (Date.now() - start > timeoutMs) {
         return reject(new Error('Portal did not start: ' + portal.getStderr().slice(-500)));
@@ -35,6 +46,29 @@ function waitFor(portal, marker = 'Portal listening', timeoutMs = 15000) {
     };
     check();
   });
+}
+
+// Stop the server and wait until it is really gone; SIGKILL if it ignores SIGTERM.
+async function stopPortal(portal) {
+  const { child } = portal;
+  if (hasExited(child)) return;
+  const exited = new Promise((resolve) => child.once('exit', resolve));
+  child.kill('SIGTERM');
+  const force = setTimeout(() => child.kill('SIGKILL'), 5000);
+  await exited;
+  clearTimeout(force);
+}
+
+// Always stops the portal, also when an assertion in `run` fails.
+async function withPortal(env, run) {
+  const port = await getPort();
+  const portal = startPortal({ ...env, PORT: String(port) });
+  try {
+    await waitFor(portal);
+    await run(port);
+  } finally {
+    await stopPortal(portal);
+  }
 }
 
 function httpGet(port, path) {
@@ -65,71 +99,59 @@ function getPort() {
 }
 
 test('demo mode: /healthz returns 200', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port) });
-  await waitFor(portal);
-  const res = await httpGet(port, '/healthz');
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  assert.equal(body.status, 'ok');
-  assert.equal(body.mode, 'demo');
-  portal.child.kill();
+  await withPortal({}, async (port) => {
+    const res = await httpGet(port, '/healthz');
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.status, 'ok');
+    assert.equal(body.mode, 'demo');
+  });
 });
 
 test('demo mode: /api/vault/:id returns demo vault', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port) });
-  await waitFor(portal);
-  const res = await httpGet(port, '/api/vault/saif_demo_vault_101');
-  assert.equal(res.status, 200);
-  const body = await res.json();
-  assert.equal(body.vaultId, 'saif_demo_vault_101');
-  assert.equal(body.gatewayMode, false);
-  assert.ok(body.files.length > 0);
-  portal.child.kill();
+  await withPortal({}, async (port) => {
+    const res = await httpGet(port, '/api/vault/saif_demo_vault_101');
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.vaultId, 'saif_demo_vault_101');
+    assert.equal(body.gatewayMode, false);
+    assert.ok(body.files.length > 0);
+  });
 });
 
 test('demo mode: missing vault returns 404', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port) });
-  await waitFor(portal);
-  const res = await httpGet(port, '/api/vault/nonexistent');
-  assert.equal(res.status, 404);
-  portal.child.kill();
+  await withPortal({}, async (port) => {
+    const res = await httpGet(port, '/api/vault/nonexistent');
+    assert.equal(res.status, 404);
+  });
 });
 
 test('production mode: /healthz returns degraded when gateway unreachable', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port), SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' });
-  await waitFor(portal);
-  const res = await httpGet(port, '/healthz');
-  assert.equal(res.status, 502);
-  const body = await res.json();
-  assert.equal(body.status, 'degraded');
-  assert.ok(body.gatewayError);
-  portal.child.kill();
+  await withPortal({ SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' }, async (port) => {
+    const res = await httpGet(port, '/healthz');
+    assert.equal(res.status, 502);
+    const body = await res.json();
+    assert.equal(body.status, 'degraded');
+    assert.ok(body.gatewayError);
+  });
 });
 
 test('production mode: /api/push returns 501 (uploads must go to gateway)', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port), SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' });
-  await waitFor(portal);
-  const res = await httpPost(port, '/api/push', {
-    files: [{ name: 'x.apk', data: 'x', mimeType: 'application/vnd.android.package-archive' }],
+  await withPortal({ SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' }, async (port) => {
+    const res = await httpPost(port, '/api/push', {
+      files: [{ name: 'x.apk', data: 'x', mimeType: 'application/vnd.android.package-archive' }],
+    });
+    assert.equal(res.status, 501);
+    const body = await res.json();
+    assert.equal(body.error, 'GATEWAY_ONLY');
   });
-  assert.equal(res.status, 501);
-  const body = await res.json();
-  assert.equal(body.error, 'GATEWAY_ONLY');
-  portal.child.kill();
 });
 
 test('production mode: /api/vault/:id returns GATEWAY_UNREACHABLE when gateway is down', async () => {
-  const port = await getPort();
-  const portal = startPortal({ PORT: String(port), SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' });
-  await waitFor(portal);
-  const res = await httpGet(port, '/api/vault/test-job-id');
-  assert.equal(res.status, 502);
-  const body = await res.json();
-  assert.equal(body.error, 'GATEWAY_UNREACHABLE');
-  portal.child.kill();
+  await withPortal({ SAIF_CLOUD_API_BASE_URL: 'http://127.0.0.1:1' }, async (port) => {
+    const res = await httpGet(port, '/api/vault/test-job-id');
+    assert.equal(res.status, 502);
+    const body = await res.json();
+    assert.equal(body.error, 'GATEWAY_UNREACHABLE');
+  });
 });
