@@ -65,26 +65,41 @@ jobs:
           gradle --version
           gradle :app:assembleDebug --no-daemon --no-configuration-cache 2>&1 | tee "$RUNNER_TEMP/builder-smoke.log"
           test -s app/build/outputs/apk/debug/app-debug.apk
+      # A stuck command has to fail its own step. The job-level limit cancels the whole job instead,
+      # and a cancelled job skips the failure report at the end.
+      - name: Install FFmpeg and fonts
+        timeout-minutes: 18
+        run: bash cloud/builder-template/scripts/install-media-tools.sh
       - name: Render one-second text video with FFmpeg
+        timeout-minutes: 7
         shell: bash
         run: |
           set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          bounded() {  # bounded <seconds> <command...>: a stuck command fails this step and is named
+            local limit="$1" status=0
+            shift
+            # KILL for the whole process group: after TERM, timeout returns as soon as python exits,
+            # and an ffmpeg that survived would keep the pipe to tee open and block the step.
+            timeout --signal=KILL "$limit" "$@" || status=$?
+            if (( status == 137 )); then
+              echo "::error::Timed out after ${limit}s: $1 ${2:-}"
+            fi
+            return "$status"
+          }
           tmp="$(mktemp -d)"
           mkdir -p "$tmp/assets" "$tmp/scratch"
           image=123e4567-e89b-42d3-a456-426614174001
           audio=123e4567-e89b-42d3-a456-426614174002
-          ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=c=0xff5100:s=120x120:d=1 \
+          bounded 60 ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=c=0xff5100:s=120x120:d=1 \
             -frames:v 1 -c:v png -f image2 -update 1 "$tmp/assets/$image"
-          ffmpeg -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:duration=1 \
+          bounded 60 ffmpeg -hide_banner -loglevel error -y -f lavfi -i sine=frequency=440:duration=1 \
             -c:a pcm_s16le -f wav "$tmp/assets/$audio"
           printf '%s\n' "{\"assets\":[{\"assetId\":\"$image\",\"mimeType\":\"image/png\"},{\"assetId\":\"$audio\",\"mimeType\":\"audio/wav\"}],\"project\":{\"type\":\"video\",\"name\":\"Smoke\",\"width\":360,\"height\":360,\"fps\":24,\"bitrate\":5000000,\"durationUs\":1000000,\"items\":[{\"type\":\"text\",\"startUs\":0,\"durationUs\":1000000,\"text\":\"SAIF AI\",\"fontSize\":28,\"color\":\"#ffffff\"},{\"type\":\"image\",\"startUs\":100000,\"durationUs\":700000,\"assetId\":\"$image\"},{\"type\":\"audio\",\"startUs\":0,\"durationUs\":1000000,\"assetId\":\"$audio\"}]}}" > "$tmp/input.json"
-          python3 cloud/builder-template/scripts/render_video.py "$tmp/input.json" "$tmp/assets" "$tmp/out.mp4" "$tmp/scratch" \
+          bounded 180 python3 cloud/builder-template/scripts/render_video.py "$tmp/input.json" "$tmp/assets" "$tmp/out.mp4" "$tmp/scratch" \
             2>&1 | tee "$RUNNER_TEMP/video-smoke.log"
           test "$(stat -c '%s' "$tmp/out.mp4")" -gt 1024
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 "$tmp/out.mp4"
-          ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 "$tmp/out.mp4" | grep -q aac
+          bounded 30 ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1 "$tmp/out.mp4"
+          bounded 30 ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1 "$tmp/out.mp4" | grep -q aac
       - name: Report template compilation failure
         if: failure()
         run: |
