@@ -54,8 +54,7 @@ jobs:
       - name: Install Android SDK and FFmpeg for cloud builds
         shell: bash
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          bash scripts/install-media-tools.sh
           if command -v sdkmanager >/dev/null; then
             yes | sdkmanager --licenses >/dev/null || true
             sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
