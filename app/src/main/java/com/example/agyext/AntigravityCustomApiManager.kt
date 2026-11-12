@@ -457,7 +457,15 @@ object AntigravityCustomApiManager {
             else -> presetById("custom")
         }
 
-        val baseUrl = detectedPreset.defaultBaseUrl
+        // A provider without a preset here (Mistral, Together, Cerebras ...) keeps its own endpoint;
+        // an unknown name falls back to the preset's default address.
+        val knownProvider = runCatching { com.example.llm.ProviderProfile.getById(legacy.providerName) }.getOrNull()
+        val baseUrl = if (detectedPreset.id == "custom" && knownProvider != null &&
+            knownProvider.id != "Gemini" && knownProvider.baseUrl.startsWith("http")) {
+            knownProvider.baseUrl
+        } else {
+            detectedPreset.defaultBaseUrl
+        }
         val model = legacy.activeModel.trim()
             .ifBlank { detectedPreset.defaultModels.firstOrNull() ?: "gpt-4o" }
         val profile = AgyCustomApiProfile(
@@ -472,6 +480,22 @@ object AntigravityCustomApiManager {
         )
         upsertProfile(context, profile, activate = true, enableExtension = true)
         return profile
+    }
+
+    /**
+     * Antigravity is not connected and the user has already saved an API key in the app: that key is switched on
+     * instead of sending the user to an Antigravity sign-in. A saved (paused) API profile is used first, then the
+     * key from the AI provider settings. Returns the profile now in use, or null when no key is saved anywhere.
+     */
+    fun adoptSavedProviderKey(context: Context?): AgyCustomApiProfile? {
+        val cur = getState(context)
+        if (cur.isActiveAndReady) return cur.activeProfile
+        val saved = OwnApiKeyPolicy.savedProfileToUse(cur)
+        if (saved != null) {
+            saveState(context, cur.copy(enabled = true, activeProfileId = saved.id))
+            return saved
+        }
+        return importFromLegacyProviderSettings(context)
     }
 
     suspend fun fetchModels(profile: AgyCustomApiProfile): Result<List<String>> = withContext(Dispatchers.IO) {

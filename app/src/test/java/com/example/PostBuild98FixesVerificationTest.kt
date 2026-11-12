@@ -188,7 +188,8 @@ class PostBuild98FixesVerificationTest {
         val settings = settingsFile.readText()
         assertTrue(settings.contains("SectionHeader(\"VOICE RESPONSES\")"))
         assertTrue(settings.contains("SectionHeader(\"AI AGENTS & SKILLS\")"))
-        assertTrue(settings.contains("SectionHeader(\"SAIF AI ADVANCED EDITING ENGINE\")"))
+        // The owner asked for the editing-engine block to be removed from the settings panel completely.
+        assertFalse(settings.contains("ADVANCED EDITING ENGINE"))
         assertTrue(settings.contains("SectionHeader(\"TERMINAL & AI PROVIDERS\")"))
         assertFalse(settings.contains("VOICE & TTS (SAIF ADVANCE VOICE)"))
         assertFalse(settings.contains("DATA & PRIVACY"))

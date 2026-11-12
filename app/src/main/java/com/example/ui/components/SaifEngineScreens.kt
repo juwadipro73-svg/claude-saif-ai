@@ -26,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.AlertDialog
@@ -59,10 +58,13 @@ private val SaifPurple = Color(0xFF7C5CE0)
 
 /**
  * The centre of an empty SAIF AI chat.
- *  - not signed in  -> "Sign in to SAIF AI" + Sign In button
- *  - connecting     -> a small spinner with the step
- *  - offline/error  -> what is wrong + Reconnect
- *  - signed in      -> just the glowing SAIF AI mark (no greeting text)
+ *  - no provider yet -> "Add my API key" first; signing in to Antigravity is offered as an optional second way
+ *  - connecting      -> a small spinner with the step, and "Use my own API key"
+ *  - offline/error   -> what is wrong + Reconnect, and "Use my own API key"
+ *  - ready           -> just the glowing SAIF AI mark (no greeting text)
+ *
+ * [onUseOwnApiKey] opens the API key dialog. It is offered in every not-ready state, so an Antigravity sign-in is
+ * never the only way to start chatting.
  */
 @Composable
 fun SaifEmptyState(
@@ -71,7 +73,8 @@ fun SaifEmptyState(
     isAuthBusy: Boolean,
     onSignIn: () -> Unit,
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onUseOwnApiKey: (() -> Unit)? = null
 ) {
     val c = SaifTheme.colors
     Column(
@@ -91,40 +94,64 @@ fun SaifEmptyState(
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Connect to the internet to sign in and chat with SAIF AI.",
+                    "Connect to the internet to chat with SAIF AI.",
                     color = c.textSecondary, fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center
                 )
             }
 
             status == SystemStatus.UNAUTHENTICATED -> {
-                SaifMarkCircle(icon = Icons.Default.Person, tint = SaifPurple)
+                SaifMarkCircle(icon = Icons.Outlined.AutoAwesome, tint = SaifPurple)
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Sign in to SAIF AI",
+                    "Start chatting with SAIF AI",
                     color = c.textPrimary, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Please sign in to send messages, manage chat history, and interact with your workspace.",
+                    if (onUseOwnApiKey != null) {
+                        "Add your own API key (OpenRouter, Gemini, OpenAI, Anthropic, Groq and more) and SAIF AI is ready. " +
+                            "Signing in to Antigravity is optional."
+                    } else {
+                        "Sign in to send messages, manage chat history, and work in your workspace."
+                    },
                     color = c.textSecondary, fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(22.dp))
-                Button(
-                    onClick = onSignIn,
-                    enabled = !isAuthBusy,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White),
-                    contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
-                ) {
-                    if (isAuthBusy) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White
-                        )
-                    } else {
-                        Icon(Icons.AutoMirrored.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
+                if (onUseOwnApiKey != null) {
+                    Button(
+                        onClick = onUseOwnApiKey,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White),
+                        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
+                    ) {
+                        Text("Add my API key", fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     }
-                    Spacer(Modifier.width(8.dp))
-                    Text("Sign In", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(onClick = onSignIn, enabled = !isAuthBusy) {
+                        if (isAuthBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = SaifPurple)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text("Sign in with Antigravity instead", color = SaifPurple, fontSize = 13.sp)
+                    }
+                } else {
+                    Button(
+                        onClick = onSignIn,
+                        enabled = !isAuthBusy,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White),
+                        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
+                    ) {
+                        if (isAuthBusy) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White
+                            )
+                        } else {
+                            Icon(Icons.AutoMirrored.Outlined.Login, contentDescription = null, modifier = Modifier.size(18.dp))
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text("Sign In", fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                    }
                 }
             }
 
@@ -139,6 +166,12 @@ fun SaifEmptyState(
                     },
                     color = c.textSecondary, fontSize = 14.sp, textAlign = TextAlign.Center
                 )
+                if (onUseOwnApiKey != null) {
+                    Spacer(Modifier.height(10.dp))
+                    TextButton(onClick = onUseOwnApiKey) {
+                        Text("Use my own API key", color = SaifPurple, fontSize = 13.sp)
+                    }
+                }
             }
 
             status == SystemStatus.OFFLINE || status == SystemStatus.ERROR -> {
@@ -161,6 +194,12 @@ fun SaifEmptyState(
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
                 ) {
                     Text("Reconnect", color = SaifPurple, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+                if (onUseOwnApiKey != null) {
+                    Spacer(Modifier.height(6.dp))
+                    TextButton(onClick = onUseOwnApiKey) {
+                        Text("Use my own API key", color = SaifPurple, fontSize = 13.sp)
+                    }
                 }
             }
 

@@ -449,6 +449,7 @@ class LiveVoiceSessionManager(
 
             val fullSystemPrompt = """
 You are SAIF AI, an advanced real-time Android voice assistant.
+${com.example.util.SaifIdentity.RULE}
 $memoryBlock
 
 CURRENT ACTIVE SCREEN: You are currently on the screen of '$activeApp' (Package: $currentPkg).

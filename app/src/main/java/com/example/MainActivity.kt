@@ -76,6 +76,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        // Leaving the app after a project is finished starts the idle timer of the storage clean-up.
+        com.example.storage.ModuleAutoCleaner.onAppBackgrounded(applicationContext)
         LiveVoiceManager.isAppInForeground.value = false
         com.example.util.WakeWordManager.isAppInForeground = false
         com.example.util.WakeWordAudioDetector.stop()
@@ -136,7 +138,13 @@ class MainActivity : ComponentActivity() {
                 val user = currentUser
                 com.example.providers.TerminalProviderManager.bindUserAccount(applicationContext, user?.uid)
                 com.example.agents.SaifAgentRegistry.ensureLoaded(applicationContext, user?.uid)
-                com.example.providers.TerminalProviderManager.resumePendingSetupIfNeeded(applicationContext)
+                // No "choose your provider" screen on first run: the local workspace is selected silently and
+                // the app opens straight on the chat. Providers can still be changed in Settings.
+                val defaultApplied = user != null && user.isActive && !user.isBanned &&
+                    com.example.providers.TerminalProviderManager.ensureDefaultProviderSelected(applicationContext, user.uid)
+                if (!defaultApplied) {
+                    com.example.providers.TerminalProviderManager.resumePendingSetupIfNeeded(applicationContext)
+                }
                 if (user != null && user.isActive && !user.isBanned) {
                     com.example.gemini.data.remote.SavedAiSkills.bind(applicationContext, user.uid)
                     val prefs = com.example.gemini.data.preferences.AuthPreferences(applicationContext)
@@ -182,13 +190,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            var providerSetupComplete by remember(currentUser?.uid) {
-                mutableStateOf(currentUser?.let { user ->
-                    !user.isActive || user.isBanned ||
-                        com.example.providers.TerminalProviderManager.hasSelectedProviderForUser(applicationContext, user.uid)
-                } ?: true)
-            }
-
             var showStartupSplash by androidx.compose.runtime.saveable.rememberSaveable {
                 mutableStateOf(!android.os.Build.FINGERPRINT.equals("robolectric", ignoreCase = true))
             }
@@ -226,16 +227,6 @@ class MainActivity : ComponentActivity() {
                                 // Account Suspended / Banned Screen
                                 com.example.ui.components.BannedUserOverlay(
                                     onSignOut = { AuthManager.signOut() }
-                                )
-                            } else if (!providerSetupComplete) {
-                                com.example.providers.TerminalProviderSelectionScreen(
-                                    userDisplayName = user?.name,
-                                    onProviderConfirmed = { selected ->
-                                        com.example.providers.TerminalProviderManager.selectAndPrepareProvider(
-                                            applicationContext, selected.id
-                                        )
-                                        providerSetupComplete = true
-                                    }
                                 )
                             } else {
                                 SaifAiApp(

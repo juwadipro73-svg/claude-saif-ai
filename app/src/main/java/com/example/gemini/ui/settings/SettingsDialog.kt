@@ -8226,23 +8226,9 @@ private fun AboutSubScreen(
     var legalPage by remember { mutableStateOf<String?>(null) }
     val cloudJob by com.example.cloud.SaifAiCloudManager.current.collectAsState()
 
+    // One licence and credits screen for the whole app (also opened from SAIF AI Settings).
     legalPage?.let { page ->
-        AlertDialog(onDismissRequest = { legalPage = null },
-            title = { Text("SAIF AI · Legal notices") },
-            text = {
-                Column(Modifier.heightIn(max = 460.dp)) {
-                    Row {
-                        TextButton(onClick = { legalPage = "THIRD_PARTY_NOTICES.md" }) { Text("Notices") }
-                        TextButton(onClick = { legalPage = "LICENSE" }) { Text("GPLv3") }
-                    }
-                    val content = remember(page) {
-                        runCatching { context.assets.open("legal/$page").bufferedReader().use { it.readText() } }
-                            .getOrElse { "Legal notice could not be loaded; contact the app distributor for the corresponding source." }
-                    }
-                    Text(content, modifier = Modifier.verticalScroll(rememberScrollState()),
-                        style = MaterialTheme.typography.bodySmall)
-                }
-            }, confirmButton = { TextButton(onClick = { legalPage = null }) { Text("Close") } })
+        com.example.ui.components.SaifLegalNoticesDialog(onDismiss = { legalPage = null }, initialPage = page)
     }
 
     // Bridge file tracking in public Downloads directory
@@ -8714,11 +8700,11 @@ private fun AboutSubScreen(
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Legal notices & source", style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold)
-                Text("SAIF AI includes GPLv3-covered and third-party components. Their original copyright and licence terms remain with the code; the distributor must provide corresponding source.",
+                Text("SAIF AI is free software under the GNU GPL v3 or later. It is built on AntiGem by Santosh Kurmi (GPLv3) and the JARVIS AI Android assistant by Tech GPTx (TAMCL v1.0), and uses other open-source components. Their copyright and licence terms stay with the code, and the source of this build is available to everyone who receives the app.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { legalPage = "THIRD_PARTY_NOTICES.md" }) {
-                    Text("Read bundled licences and notices")
+                    Text("Read the licences and credits")
                 }
             }
         }

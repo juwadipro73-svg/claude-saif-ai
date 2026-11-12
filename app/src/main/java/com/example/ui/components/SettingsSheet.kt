@@ -175,6 +175,7 @@ fun SettingsSheet(
     var showSkillsManager by remember { mutableStateOf(false) }
     var showTerminalProviders by remember { mutableStateOf(false) }
     var showSignOutConfirmDialog by remember { mutableStateOf(false) }
+    var showLegalNotices by remember { mutableStateOf(false) }
     val displayName = authUser?.name?.ifBlank { authUser?.email?.substringBefore("@")?.replaceFirstChar { it.uppercase() } } ?: "User"
 
     val photoPicker = rememberLauncherForActivityResult(
@@ -502,7 +503,7 @@ fun SettingsSheet(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // SAIF AI's original Appearance control comes first, before the editing engine.
+            // SAIF AI's original Appearance control comes first.
             SectionHeader("APPEARANCE")
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth().height(64.dp)
@@ -687,72 +688,6 @@ fun SettingsSheet(
             }
 
             Spacer(Modifier.height(24.dp))
-            SectionHeader("SAIF AI ADVANCED EDITING ENGINE")
-            val editingConfig by com.example.studio.AdvancedEditingEnginePrefs.state.collectAsState()
-            LaunchedEffect(Unit) { com.example.studio.AdvancedEditingEnginePrefs.load(context) }
-            LiquidSurface(
-                color = SaifTheme.colors.surfaceCard, glassBorderBrush = glassBorderBrush,
-                shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()
-            ) {
-                Column {
-                    SettingsInlineCategory("VIDEO EXPORT")
-                    SettingsChoiceRow("Default resolution", editingConfig.defaultResolution,
-                        com.example.studio.AdvancedEditingEnginePrefs.RESOLUTIONS) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(defaultResolution = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsChoiceRow("Frame rate", "${editingConfig.defaultFps} FPS",
-                        com.example.studio.AdvancedEditingEnginePrefs.FPS_OPTIONS.map { "$it FPS" }) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(defaultFps = value.substringBefore(' ').toInt()) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsChoiceRow("Bitrate / quality", editingConfig.defaultBitrateTier,
-                        com.example.studio.AdvancedEditingEnginePrefs.BITRATE_TIERS) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(defaultBitrateTier = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsInlineCategory("CAPTIONS & AUDIO")
-                    SettingsChoiceRow("Caption style", editingConfig.defaultCaptionStyle,
-                        com.example.studio.AdvancedEditingEnginePrefs.CAPTION_STYLES) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(defaultCaptionStyle = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsToggleRow("Auto-generate captions", editingConfig.autoGenerateCaptions) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(autoGenerateCaptions = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsToggleRow("Anti-jitter stabilization", editingConfig.antiJitterStabilization) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(antiJitterStabilization = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsToggleRow("Audio ducking", editingConfig.autoAudioDucking) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(autoAudioDucking = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsInlineCategory("RENDER QUALITY & SAFEGUARDS")
-                    SettingsToggleRow("Hardware acceleration", editingConfig.hardwareAcceleration) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(hardwareAcceleration = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsToggleRow("Strict pre-export quality check", editingConfig.strictPreExportQualityCheck) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(strictPreExportQualityCheck = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsToggleRow("Protect manual edits", editingConfig.protectManualEdits) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(protectManualEdits = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsInlineCategory("COLOR GRADING")
-                    SettingsChoiceRow("Color LUT", editingConfig.defaultColorLut,
-                        com.example.studio.AdvancedEditingEnginePrefs.COLOR_LUTS) { value ->
-                        com.example.studio.AdvancedEditingEnginePrefs.update(context) { it.copy(defaultColorLut = value) }
-                    }
-                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                    SettingsActionRow("More editing engine settings", "Hardware acceleration, quality checks & editing safeguards", onClick = { onOpenEngineSettings("UTILITIES") })
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
             SectionHeader("TERMINAL & AI PROVIDERS")
             LiquidSurface(
                 color = SaifTheme.colors.surfaceCard, glassBorderBrush = glassBorderBrush,
@@ -788,18 +723,74 @@ fun SettingsSheet(
                 }
             }
 
+            Spacer(Modifier.height(24.dp))
+            // Work in the Linux workspace downloads gigabytes of modules. They are removed again once a project
+            // has been idle; the project itself is never removed.
+            SectionHeader("STORAGE")
+            val cleanupStatus by com.example.storage.ModuleAutoCleaner.status.collectAsState()
+            LaunchedEffect(Unit) { com.example.storage.ModuleAutoCleaner.load(context) }
+            LiquidSurface(
+                color = SaifTheme.colors.surfaceCard, glassBorderBrush = glassBorderBrush,
+                shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    SettingsToggleRow("Auto-clean heavy modules", cleanupStatus.enabled) { value ->
+                        com.example.storage.ModuleAutoCleaner.setEnabled(context, value)
+                    }
+                    Text(
+                        "After a project is finished and idle, downloaded modules (node_modules, Python environments, " +
+                            "Gradle, npm, pip and apt caches) are deleted to free storage. Your project files are never " +
+                            "deleted. When you return to a project, its modules are downloaded again.",
+                        color = SaifTheme.colors.textSecondary, fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)
+                    )
+                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
+                    SettingsChoiceRow(
+                        "Clean when a project is idle for",
+                        com.example.storage.ModuleCleanupRules.idleLabel(cleanupStatus.idleMinutes),
+                        com.example.storage.ModuleCleanupRules.IDLE_CHOICES_MINUTES.map { com.example.storage.ModuleCleanupRules.idleLabel(it) }
+                    ) { label ->
+                        com.example.storage.ModuleAutoCleaner.setIdleMinutes(
+                            context, com.example.storage.ModuleCleanupRules.idleMinutesFromLabel(label)
+                        )
+                    }
+                    HorizontalDivider(color = SaifTheme.colors.cardBorder)
+                    SettingsActionRow(
+                        if (cleanupStatus.running) "Cleaning…" else "Clean heavy modules now",
+                        com.example.storage.ModuleAutoCleaner.describe(cleanupStatus),
+                        onClick = { com.example.storage.ModuleAutoCleaner.startManualClean(context) }
+                    )
+                }
+            }
+
             Spacer(Modifier.height(32.dp))
 
             // Permission Manager Section
             PermissionManagerSection(glassBorderBrush = glassBorderBrush)
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Footer
+            SectionHeader("ABOUT & LICENCES")
+            LiquidSurface(
+                color = SaifTheme.colors.surfaceCard, glassBorderBrush = glassBorderBrush,
+                shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    SettingsActionRow(
+                        "Open-source licences & credits",
+                        "Everyone whose code SAIF AI uses, and the licences",
+                        onClick = { showLegalNotices = true }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Footer: version, and the copyright / no-warranty / licence notice the GPL asks for.
             Text(
-                text = "SAIF AI is created by SAIF. Version 1.0.0\n${com.example.gemini.BuildConfig.BUILD_STAMP}",
+                text = "SAIF AI ${com.example.gemini.BuildConfig.VERSION_NAME}\n${com.example.gemini.BuildConfig.BUILD_STAMP}\n\n" +
+                    SaifLegalNotices.SHORT_NOTICE,
                 fontSize = 11.sp,
                 color = SubtextMuted,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().clickable { showLegalNotices = true },
                 textAlign = TextAlign.Center
             )
         }
@@ -835,6 +826,10 @@ fun SettingsSheet(
         )
     }
 
+    if (showLegalNotices) {
+        SaifLegalNoticesDialog(onDismiss = { showLegalNotices = false })
+    }
+
     if (showSignOutConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showSignOutConfirmDialog = false },
@@ -867,18 +862,6 @@ fun SettingsSheet(
     }
 }
 
-
-@Composable
-private fun SettingsInlineCategory(title: String) {
-    Text(
-        text = title,
-        color = SubtextMuted,
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 0.8.sp,
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 3.dp)
-    )
-}
 
 @Composable
 private fun SettingsActionRow(title: String, subtitle: String, onClick: () -> Unit) {

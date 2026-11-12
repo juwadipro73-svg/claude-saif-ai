@@ -270,3 +270,18 @@ Warnings cleaned (compile-safe, only icons the CI log named): `Icons.Filled/Defa
 **Round 15d** - build stamp: CI now sets `versionCode = max(version.json, 1000 + run number)`, `versionName = <name>-b<run>` and `BuildConfig.BUILD_STAMP = "build #N (sha)"`, shown under the home greeting and in the Settings footer; artifact is named `app-debug-build-<N>`. If the stamp on the phone does not match the latest green run, the phone is running an OLD APK.
 
 **Round 15e** - auto build: `build-apk.yml` now triggers on a push to ANY branch (was only `main` and `arena/**`, so a web upload to another branch never started a build), cancels an older run of the same branch when a newer push arrives, and always refreshes the `saif-ai-apk` release when the build succeeds. `workflow_dispatch` (manual run) still works.
+
+## Credits and licences: never remove them
+
+SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, the JARVIS AI Android
+assistant by Tech GPTx, Termux, PRoot and more). An earlier round removed the Tech GPTx credit; that broke its
+licence and had to be undone. Rules for every agent and every change:
+
+- Do not delete or reword away any name, copyright line or licence in `LICENSE`, `THIRD_PARTY_NOTICES.md`,
+  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt` or the
+  settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
+- Do not change the project to a proprietary or "all rights reserved" licence. It contains GPL code.
+- When you add a library or copy code, add it to `THIRD_PARTY_NOTICES.md` with its licence, then copy the file to
+  `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
+- The assistant's spoken or typed answer to "who made you?" is the product persona (SAIF AI, see
+  `SaifIdentity.RULE`). It is separate from these legal credits and must not be used as a reason to remove them.

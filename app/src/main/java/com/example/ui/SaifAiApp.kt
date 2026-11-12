@@ -125,9 +125,26 @@ fun SaifAiApp(
         lastBoundAccountUid = nextUid
         accountUpgradeSourceUid = null
     }
-    val accountIssue = if (antigravityConnection.isReady) {
-        com.example.gemini.data.remote.GoogleAccountBinding.denialReason(appUser, antigravityAuthInfo)
-    } else null
+    // The engine's own view model: SAIF's header strip / settings rows ask its workspace to open on a given view or settings section.
+    val engineVm = remember { com.example.gemini.ui.chat.ChatViewModelHolder.get(context.applicationContext as android.app.Application) }
+    // The real Antigravity hub. `antigravityConnection` above is a stand-in "connected" state while the user's own
+    // API key is in use, so it must not be used to decide whether an Antigravity account has to be verified.
+    val hubConnection by engineVm.systemConnectionState.collectAsState()
+    val hubAuthInfo by engineVm.agyAuthInfo.collectAsState()
+    // A user-supplied API key is not an Antigravity session: there is no Antigravity account to verify, and the
+    // app is never covered by an Antigravity sign-in screen while that key is in use.
+    val accountIssue = com.example.agyext.OwnApiKeyPolicy.antigravityAccountIssue(
+        usingOwnApiKey = customApiExtState.isActiveAndReady,
+        hubReady = hubConnection.isReady
+    ) { com.example.gemini.data.remote.GoogleAccountBinding.denialReason(appUser, hubAuthInfo) }
+    // A key saved earlier in the AI provider settings is enough to chat. When Antigravity reports "not signed in"
+    // and no API profile was ever set up, that key is adopted, so the home screen is ready instead of asking for a sign-in.
+    val noApiProfileYet = customApiExtState.profiles.isEmpty()
+    LaunchedEffect(hubConnection.status, noApiProfileYet) {
+        if (noApiProfileYet && hubConnection.status == com.example.gemini.data.remote.SystemStatus.UNAUTHENTICATED) {
+            com.example.agyext.AntigravityCustomApiManager.importFromLegacyProviderSettings(context.applicationContext)
+        }
+    }
     val antigravityQuotas by viewModel.antigravityQuotas.collectAsState()
     LaunchedEffect(accountIssue) {
         if (accountIssue != null) {
@@ -139,8 +156,6 @@ fun SaifAiApp(
                 com.jarvis.assistant.SaifAutomation.stopLive(context.applicationContext)
         }
     }
-    // The engine's own view model: SAIF's header strip / settings rows ask its workspace to open on a given view or settings section.
-    val engineVm = remember { com.example.gemini.ui.chat.ChatViewModelHolder.get(context.applicationContext as android.app.Application) }
     val openEngineView: (String?) -> Unit = { mode ->
         when (mode) {
             "IDE" -> engineFeature = mode
@@ -191,10 +206,14 @@ fun SaifAiApp(
     DisposableEffect(viewModel) {
         // Live voice delegates coding/file changes to the same Antigravity chat as typed messages.
         com.example.live.LiveCodingBridge.isReady = {
-            viewModel.antigravityConnection.value.isReady &&
+            com.example.agyext.OwnApiKeyPolicy.canRunCodingTasks(
+                usingOwnApiKey = com.example.agyext.AntigravityCustomApiManager.getState(context.applicationContext).isActiveAndReady,
+                hubReady = engineVm.systemConnectionState.value.isReady
+            ) {
                 com.example.gemini.data.remote.GoogleAccountBinding.denialReason(
-                    com.example.data.local.AuthManager.currentUser.value, viewModel.antigravityAuthInfo.value
-                ) == null
+                    com.example.data.local.AuthManager.currentUser.value, engineVm.agyAuthInfo.value
+                )
+            }
         }
         com.example.live.LiveCodingBridge.send = { text -> viewModel.sendLiveCodingTask(context.applicationContext, text) }
         onDispose {
@@ -725,7 +744,7 @@ fun SaifAiApp(
                                     )
                                     DropdownMenu(expanded = showModelMenu, onDismissRequest = { showModelMenu = false }) {
                                         if (!antigravityConnection.isReady) {
-                                            DropdownMenuItem(text = { Text("Connect Antigravity") }, onClick = {
+                                            DropdownMenuItem(text = { Text("Sign in to Antigravity (optional)") }, onClick = {
                                                 showModelMenu = false; showConnectionDialog = true
                                             })
                                         }
@@ -734,7 +753,7 @@ fun SaifAiApp(
                                                 Text(
                                                     if (customApiExtState.isActiveAndReady)
                                                         "Custom API: ${customApiExtState.activeProfile?.name.orEmpty()} (ON)"
-                                                    else "Antigravity Custom API…"
+                                                    else "Use my own API key…"
                                                 )
                                             },
                                             onClick = {
@@ -846,7 +865,8 @@ fun SaifAiApp(
                                 engineVm.retryConnections()
                                 com.example.gemini.data.local.LocalServerManager.restartServer(context.applicationContext)
                             },
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
+                            onUseOwnApiKey = { showCustomApiFromHome = true }
                         )
                     } else {
                         HomeAgentFeed(
@@ -1416,6 +1436,7 @@ fun SaifAiApp(
                     color = com.example.ui.theme.SaifTheme.colors.textSecondary, textAlign = TextAlign.Center)
                 Spacer(Modifier.height(24.dp))
                 Button(onClick = { showConnectionDialog = true }) { Text("Manage Antigravity sign-in") }
+                TextButton(onClick = { showCustomApiFromHome = true }) { Text("Use my own API key instead") }
                 TextButton(onClick = { showSettings = true }) { Text("Open SAIF AI Settings") }
             }
         }

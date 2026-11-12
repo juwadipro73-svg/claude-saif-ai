@@ -39,6 +39,9 @@ import java.io.File
 object TerminalProviderManager {
 
     private const val PREFS_PREFIX = "saif_terminal_providers_v1"
+
+    /** Selected silently on first run (see [ensureDefaultProviderSelected]). */
+    const val DEFAULT_PROVIDER_ID = "local_ubuntu"
     private const val NOTIFICATION_CHANNEL_ID = "saif_terminal_provider_ready"
     private const val READY_NOTIFICATION_ID = 5120
 
@@ -191,6 +194,17 @@ object TerminalProviderManager {
     fun hasSelectedProviderForUser(context: Context, uid: String?): Boolean {
         val st = bindUserAccount(context, uid)
         return st.hasCompletedOnboardingSelection && st.activeProviderId.isNotBlank()
+    }
+
+    /**
+     * First run without a chooser screen: the plain local Linux workspace is selected silently, so the app opens
+     * straight on the chat. It needs no account and no API key; another provider can still be picked later in
+     * Settings. Returns true when the default was applied now, false when the user already had a provider.
+     */
+    fun ensureDefaultProviderSelected(context: Context, uid: String?): Boolean {
+        if (hasSelectedProviderForUser(context, uid)) return false
+        selectAndPrepareProvider(context, DEFAULT_PROVIDER_ID, setAsDefault = true)
+        return true
     }
 
     /**

@@ -1,16 +1,28 @@
 package com.jarvis.assistant.security
 
 /**
- * Developer identity — SAIF AI.
- * This module is 100% owned and credited to SAIF AI. No external credits or license notices apply.
+ * Who wrote this module.
+ *
+ * The voice and phone-automation engine is the JARVIS AI Android assistant by Tech GPTx (Rehaan), used under the
+ * TAMCL v1.0 licence (see automation/LICENSE). That licence forbids removing the Tech GPTx credit from the code,
+ * the manifests, the interface or the documentation, and asks content creators to credit Tech GPTx in any video
+ * that uses this code. SAIF AI integrated the module into its app and changed it; the original credit stays.
+ *
+ * Do not replace these values with "SAIF AI": an earlier edit did, and it was a licence violation.
  */
 object DeveloperInfo {
-    const val DEVELOPER_NAME      = "SAIF AI"
+    const val DEVELOPER_NAME      = "Tech GPTx"
     const val COPYRIGHT_YEAR      = "2026"
-    const val COPYRIGHT_NOTICE    = "© 2026 SAIF AI. All Rights Reserved."
-    const val GITHUB_URL          = "https://github.com/shahudgg/saif-ai-director-"
-    const val LICENSE             = "SAIF AI License"
-    const val LICENSE_DETAIL      = "This code belongs to SAIF AI. No third-party credit is required."
+    const val COPYRIGHT_NOTICE    = "\u00A9 2026 Tech GPTx. All Rights Reserved."
+    const val GITHUB_URL          = "https://github.com/techgptx/Playlist"
+    const val LICENSE             = "TAMCL v1.0"
+    const val LICENSE_DETAIL      = "Content creators MUST credit Tech GPTx in any video using this code."
+    const val VERIFIED_DEVELOPER  = "Tech GPTx \u2014 Official JARVIS Tutorial Series"
+
+    /** The app this copy of the module is built into. */
+    const val INTEGRATED_BY       = "SAIF AI"
     const val APP_OFFICIAL_ID     = "com.example"
-    const val VERIFIED_DEVELOPER  = "SAIF AI — original and only developer of this app"
+
+    /** One line for footers and "about" screens. */
+    const val CREDIT_LINE         = "Built on JARVIS Android Assistant by Tech GPTx \u2022 TAMCL v1.0"
 }

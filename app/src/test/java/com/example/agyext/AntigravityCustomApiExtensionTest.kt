@@ -74,6 +74,29 @@ class AntigravityCustomApiExtensionTest {
     }
 
     @Test
+    fun savedKeyIsUsedInsteadOfAnAntigravitySignIn() {
+        // Nothing saved anywhere: there is nothing to adopt, so the home screen offers "add my API key".
+        assertNull(AntigravityCustomApiManager.adoptSavedProviderKey(context))
+
+        // A complete profile that the user paused. Antigravity is not connected, so the key is switched back on.
+        val profile = AntigravityCustomApiManager.createProfileFromPreset("openrouter").copy(apiKey = "sk-or-v1-test")
+        AntigravityCustomApiManager.upsertProfile(context, profile, activate = true, enableExtension = false)
+        assertFalse(AntigravityCustomApiManager.getState(context).isActiveAndReady)
+
+        val adopted = AntigravityCustomApiManager.adoptSavedProviderKey(context)
+
+        assertEquals(profile.id, adopted?.id)
+        val state = AntigravityCustomApiManager.getState(context)
+        assertTrue(state.isActiveAndReady)
+        assertEquals(profile.id, state.activeProfile?.id)
+        // Already on: nothing changes and the same profile is returned.
+        assertEquals(profile.id, AntigravityCustomApiManager.adoptSavedProviderKey(context)?.id)
+        // The choice survives a restart.
+        val reloaded = AntigravityCustomApiManager.parseStateJson(AntigravityCustomApiManager.encodeStateJson(state))
+        assertTrue(reloaded.isActiveAndReady)
+    }
+
+    @Test
     fun persistsMultiProfileStateAndSwitchesModelsFromComposer() {
         val orProfile = AntigravityCustomApiManager.createProfileFromPreset("openrouter")
             .copy(apiKey = "sk-or-v1-test", selectedModel = "anthropic/claude-sonnet-4")

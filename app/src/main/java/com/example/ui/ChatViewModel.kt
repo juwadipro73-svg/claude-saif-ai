@@ -514,16 +514,20 @@ class ChatViewModel(
         if ((trimmed.isEmpty() && attachments.isEmpty()) || _isGenerating.value) return null
 
         val customApiState = com.example.agyext.AntigravityCustomApiManager.getState(context)
+        // The user's own API key never needs an Antigravity sign-in. When Antigravity is not connected, a key that
+        // is already saved in the app (a paused API profile, or the AI provider settings) is switched on and used.
         val activeCustomProfile = customApiState.activeProfile?.takeIf { customApiState.isActiveAndReady }
+            ?: if (engine.systemConnectionState.value.isReady) null
+            else com.example.agyext.AntigravityCustomApiManager.adoptSavedProviderKey(context)
 
         if (activeCustomProfile == null) {
-            // Never discard the draft when the shared hub needs setup or sign-in.
+            // Never discard the draft when no AI provider is connected yet.
             val connection = engine.systemConnectionState.value
             if (!connection.isReady) {
                 val message = when (connection.status) {
-                    com.example.gemini.data.remote.SystemStatus.UNAUTHENTICATED -> "Antigravity isn't connected. Use Sign In or enable Antigravity Custom API in Settings."
-                    com.example.gemini.data.remote.SystemStatus.ERROR -> "SAIF AI server error: tap the status dot to reconnect."
-                    else -> "SAIF AI server isn't ready. Tap the status dot in the header to reconnect."
+                    com.example.gemini.data.remote.SystemStatus.UNAUTHENTICATED -> "Add your own API key in Settings to start chatting. Signing in to Antigravity is optional."
+                    com.example.gemini.data.remote.SystemStatus.ERROR -> "SAIF AI server error: tap the status dot to reconnect, or add your own API key in Settings."
+                    else -> "SAIF AI server isn't ready. Tap the status dot to reconnect, or add your own API key in Settings."
                 }
                 android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
                 return null
@@ -543,6 +547,8 @@ class ChatViewModel(
             _isGenerating.value = true
             var sessionId: String? = null
             try {
+                // Nothing in the Linux workspace is cleaned while the agent works; the idle timer restarts afterwards.
+                com.example.storage.ModuleAutoCleaner.onWorkStarted(context)
                 com.example.gemini.data.remote.AndroidLocalBridgeServer.instance.ensureLinuxCliReady(context)
                 com.example.github.GitHubIntegrationManager.init(context)
 
@@ -578,7 +584,9 @@ class ChatViewModel(
                     val expandedPrompt = buildString {
                         if (systemText.isNotBlank()) append("Instructions: ").append(systemText).append("\n\n")
                         if (specialistDirective.isNotBlank()) append(specialistDirective).append("\n\n")
+                        append(com.example.util.SaifIdentity.RULE).append("\n\n")
                         append(DIRECT_ANSWER_RULE).append("\n\n")
+                        append(com.example.storage.ModuleCleanupRules.AGENT_RULE).append("\n\n")
                         val memory = com.example.util.SaifMemoryCore.promptBlock(com.example.util.SaifMemoryCore.Features.CHAT)
                         if (memory.isNotBlank()) append(memory).append("\n\n")
                         if (!customApiEngine.loadSessionMessages(sessionId) && history.isNotEmpty()) {
@@ -636,7 +644,9 @@ class ChatViewModel(
                     val request = buildString {
                         if (systemText.isNotBlank()) append("Instructions: ").append(systemText).append("\n\n")
                         if (specialistDirective.isNotBlank()) append(specialistDirective).append("\n\n")
+                        append(com.example.util.SaifIdentity.RULE).append("\n\n")
                         append(DIRECT_ANSWER_RULE).append("\n\n")
+                        append(com.example.storage.ModuleCleanupRules.AGENT_RULE).append("\n\n")
                         val memory = com.example.util.SaifMemoryCore.promptBlock(com.example.util.SaifMemoryCore.Features.CHAT)
                         if (memory.isNotBlank()) append(memory).append("\n\n")
                         if (historyText.isNotBlank()) append("Previous conversation (for context):\n").append(historyText).append("\n\n")
@@ -731,6 +741,7 @@ class ChatViewModel(
             } finally {
                 _currentStreamingContent.value = ""
                 _isGenerating.value = false
+                com.example.storage.ModuleAutoCleaner.onWorkFinished(context)
             }
         }
         return activeGenerationJob
@@ -739,9 +750,11 @@ class ChatViewModel(
     /** Uses the same verified connection, attachments pipeline and chat history as a typed coding request. */
     suspend fun sendLiveCodingTask(context: android.content.Context, spokenRequest: String): String {
         if (_isGenerating.value) return "Antigravity is still working on the last request. Check the chat before sending another edit."
-        val customReady = com.example.agyext.AntigravityCustomApiManager.getState(context).isActiveAndReady
+        val customReady = com.example.agyext.AntigravityCustomApiManager.getState(context).isActiveAndReady ||
+            (!engine.systemConnectionState.value.isReady &&
+                com.example.agyext.AntigravityCustomApiManager.adoptSavedProviderKey(context) != null)
         if (!customReady) {
-            if (!engine.systemConnectionState.value.isReady) return "Antigravity is not signed in or the server is still starting. Reconnect in SAIF AI first."
+            if (!engine.systemConnectionState.value.isReady) return "No AI provider is connected yet. Add your own API key in SAIF AI Settings, or sign in to Antigravity."
             com.example.gemini.data.remote.GoogleAccountBinding.denialReason(
                 com.example.data.local.AuthManager.currentUser.value, engine.agyAuthInfo.value
             )?.let { return it }

@@ -95,6 +95,7 @@ fun GeminiAssistantSheet(
     // Multi-action system prompt to execute device commands (YouTube, WhatsApp, Instagram, Camera, Flashlight, Calls, SMS, etc.)
     val liveActionSystemPrompt = """
 You are SAIF AI, an advanced native Android AI assistant with full device automation capabilities.
+${com.example.util.SaifIdentity.RULE}
 When the user asks to perform device actions, you execute them directly. If multiple tasks are chained together, execute all of them in sequence!
 Include an action block at the beginning of your response in this exact format:
 <<<ACTIONS

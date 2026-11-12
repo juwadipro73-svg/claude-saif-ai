@@ -3,9 +3,14 @@
 Voice + phone-automation agent that lives inside SAIF AI. Start it with the **purple mic button** in the
 home chat (Normal voice / Share screen).
 
-* **Owned and credited 100% to SAIF AI.** All third-party credits, license notices and attribution
-  requirements (Tech GPTx / techgpt.ai / TAMCL / "JARVIS Android Assistant") have been removed from the
-  code, the manifest, the UI and this file. Project: https://github.com/shahudgg/saif-ai-director-
+* **Credit and licence.** This module is the **JARVIS AI Android assistant by Tech GPTx (Rehaan)**
+  (<https://github.com/techgptx/Playlist>), used under the **TAMCL v1.0** licence in [`LICENSE`](LICENSE).
+  Copyright (c) 2026 Tech GPTx (Tech GP Tax) / Rehaan. SAIF AI integrated and changed it (list below).
+  TAMCL v1.0 forbids removing the Tech GPTx credit from the code, the manifests, the interface or the
+  documentation, and requires videos or posts that show this code to credit Tech GPTx. An earlier revision of
+  this file said the credits had been removed; that was wrong and is corrected. Keep
+  `security/DeveloperInfo.kt`, the settings footer and this paragraph as they are. See
+  [`../THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 * Integrated into SAIF AI: API key / provider / model come from the
   SAIF AI Settings panel (`SaifAutomation.link(...)` in `SaifApplication`), the UI follows the SAIF AI
   theme, it runs as an Android library module, the standalone anti-clone / release-pin checks are

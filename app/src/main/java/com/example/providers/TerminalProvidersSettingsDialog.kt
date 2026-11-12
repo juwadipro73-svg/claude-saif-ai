@@ -92,8 +92,10 @@ fun MainScreenProviderProgressBanner(
                     modifier = Modifier.weight(1f)
                 ) {
                     Box(Modifier.size(8.dp).background(accent, CircleShape))
+                    // The silently selected default is simply "the workspace" to the user, not a provider to choose.
+                    val bannerTitle = if (active.id == TerminalProviderManager.DEFAULT_PROVIDER_ID) "Workspace" else active.name
                     Text(
-                        text = "${active.name}: ${ecosystem.readiness.displayLabel}",
+                        text = "$bannerTitle: ${ecosystem.readiness.displayLabel}",
                         color = colors.textPrimary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -118,11 +120,15 @@ fun MainScreenProviderProgressBanner(
                             Text("Retry", fontSize = 11.sp, color = accent)
                         }
                     }
-                    TextButton(
-                        onClick = onOpenProvidersDialog,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text("Providers", fontSize = 11.sp, color = accent)
+                    // No provider list on the main screen during the normal first-run set-up. The way into the
+                    // provider settings is offered only when something needs the user's attention.
+                    if (!ecosystem.isPreparingInBackground) {
+                        TextButton(
+                            onClick = onOpenProvidersDialog,
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text("Fix", fontSize = 11.sp, color = accent)
+                        }
                     }
                 }
             }

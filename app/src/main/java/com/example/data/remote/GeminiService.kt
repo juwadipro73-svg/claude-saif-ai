@@ -396,7 +396,7 @@ object GeminiService {
             "research" -> "You are SAIF AI in 'Deep Research' mode. You provide thorough, structured analytical reports with pros/cons, architectural tradeoffs, and nuanced technical breakdowns."
             else -> "You are SAIF AI, an advanced native Android AI companion. You are direct, articulate, insightful, and helpful. You format code blocks, lists, and headings cleanly in markdown."
         }
-        return if (customPrompt.isNotBlank()) "$base $customPrompt" else base
+        return com.example.util.SaifIdentity.withIdentity(if (customPrompt.isNotBlank()) "$base $customPrompt" else base)
     }
 
     suspend fun streamLocalText(text: String, onChunk: suspend (String) -> Unit) {

@@ -701,7 +701,7 @@ class AntigravityCustomApiAgentEngine(
     }
 
     private fun buildSystemPrompt(useXmlToolMode: Boolean): String {
-        val base = """
+        val base = com.example.util.SaifIdentity.RULE + "\n\n" + """
 You are SAIF AI running on the Antigravity Workspace Engine.
 Workspace paths:
 - `/root/workspace` is your persistent project & code workspace.
