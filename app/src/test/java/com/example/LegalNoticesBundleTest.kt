@@ -57,6 +57,9 @@ class LegalNoticesBundleTest {
             "PRoot", "STMicroelectronics", "talloc", "GNU C Library",
             "sora-editor", "Rosemoe", "JLaTeXMath", "JSch", "jsoup", "Jonathan Hedley",
             "OkHttp", "Coil", "Markwon", "Apache Commons Compress",
+            // found in the list of libraries that the build really packages (build #7)
+            "AndroidSVG", "Accompanist", "gRPC-Java", "Protocol Buffers", "PerfMark", "Tink", "Guava",
+            "Commons IO", "Commons Codec", "Commons Lang", "Checker Framework", "Firebase Authentication",
             "gorilla/websocket", "google/uuid", "go-humanize", "go-isatty", "go-strftime", "modernc.org/sqlite",
             "The Go Authors", "The Android Open Source Project", "JetBrains"
         ).forEach { name -> assertTrue("credit missing: $name", notices.contains(name)) }

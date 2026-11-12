@@ -68,17 +68,28 @@ source code of these programs; it is available from the addresses above.
 
 ## 3. Libraries built into the app
 
+This table was compared with the list of libraries that the build really packages into the APK (the build
+prints that list; see "List the libraries packaged in the APK" in `.github/workflows/build-apk.yml`).
+
 | Library | Licence | Copyright / project |
 |---|---|---|
 | AndroidX / Jetpack (core, activity, lifecycle, Compose, Material 3, navigation3, Room, DataStore, WorkManager, WebKit, Media3, security-crypto, swiperefreshlayout, and the AndroidX libraries these pull in) | Apache-2.0 | The Android Open Source Project |
-| Kotlin standard library, kotlinx.coroutines, kotlinx.serialization | Apache-2.0 | JetBrains s.r.o. and contributors |
+| Kotlin standard library, kotlinx.coroutines, kotlinx.serialization, JetBrains annotations | Apache-2.0 | JetBrains s.r.o. and contributors |
 | OkHttp, Okio, Wire | Apache-2.0 | Square, Inc. |
 | Coil (coil-compose, coil-svg) | Apache-2.0 | Coil Contributors |
-| Firebase Android SDK (Auth, Firestore, Realtime Database, App Check), Google Play services | Apache-2.0 for the open-source parts; Google Play services under the Android SDK terms | Google LLC |
-| Gson, Guava ListenableFuture, apksig | Apache-2.0 | Google LLC / The Android Open Source Project |
-| Apache Commons Compress | Apache-2.0 | The Apache Software Foundation |
-| Markwon (ext-latex) | Apache-2.0 | Dimitry Ivanov |
+| AndroidSVG (used by Coil) | Apache-2.0 | Paul LeBeau |
+| Accompanist Drawable Painter (used by Coil) | Apache-2.0 | Google LLC |
+| Firebase Android SDK, open-source parts: Firestore, Realtime Database, App Check, common components | Apache-2.0 | Google LLC |
+| gRPC-Java (used by Firestore) | Apache-2.0 | The gRPC Authors |
+| Protocol Buffers, Java lite runtime (used by Firestore) | BSD-3-Clause | Google LLC |
+| PerfMark (used by gRPC) | Apache-2.0 | Google LLC |
+| Tink cryptography library (used by AndroidX security-crypto) | Apache-2.0 | Google LLC |
+| Gson, Guava, apksig | Apache-2.0 | Google LLC / The Android Open Source Project |
+| Apache Commons Compress, Commons IO, Commons Codec, Commons Lang | Apache-2.0 | The Apache Software Foundation |
+| Markwon (core, inline-parser, ext-latex) | Apache-2.0 | Dimitry Ivanov |
 | SnakeYAML Engine (used by sora-editor) | Apache-2.0 | SnakeYAML contributors |
+| Annotation-only libraries: JSR-305, Error Prone annotations, J2ObjC annotations, JSpecify, javax.inject, Android annotations | Apache-2.0 | their respective authors (Google LLC and others) |
+| Annotation-only libraries: Checker Framework qualifiers, Animal Sniffer annotations | MIT | the Checker Framework developers; MojoHaus |
 | sora-editor (editor, language-textmate, language-java) | LGPL-2.1 | Copyright (C) 2020-2024 Rosemoe - <https://github.com/Rosemoe/sora-editor> |
 | Eclipse TM4E code inside sora-editor's language-textmate, Eclipse JDT annotations | EPL-2.0 | Eclipse Foundation and contributors |
 | JLaTeXMath (via `ru.noties:jlatexmath-android`) | GPL-2.0-or-later with a linking exception | Copyright (C) 2009-2011 Calixte Denizet, Kris Coolsaet, Nico Van Cleemput, Kurt Vermeulen; Copyright 2004-2007 Universiteit Gent |
@@ -87,6 +98,11 @@ source code of these programs; it is available from the addresses above.
 | Joni, JCodings (used by sora-editor) | MIT | Copyright (c) JRuby Team |
 | commonmark-java (used by Markwon) | BSD-2-Clause | Copyright (c) 2015, Robin Stocker |
 | XZ for Java | Public domain / 0BSD | Lasse Collin, Igor Pavlov |
+
+**Not open source.** For sign-in and app protection the app also contains these Google libraries. They are not
+free software; Google lets apps include them under the Android Software Development Kit Licence, the Google Play
+Core SDK terms and the Google APIs terms: Firebase Authentication, Google Play services (auth, base, basement,
+tasks, fido), Google Identity (`googleid`), Play Integrity and reCAPTCHA. See section 8.
 
 Licence texts: `licenses/Apache-2.0.txt`, `licenses/LGPL-2.1.txt`, `licenses/EPL-2.0.txt`, `licenses/GPL-2.0.txt`,
 `licenses/MIT.txt`, `licenses/BSD-2-Clause.txt`, `licenses/BSD-3-Clause.txt`.
@@ -165,7 +181,12 @@ listed as their authors publish them; `modernc.org/sqlite` was checked.
 1. **Older builds.** Builds #1 to #5 of this app contained a third-party voice-automation module under a different
    licence. It was removed completely, with its licence, in build #6 (2026-11-12). Share only build #6 or newer,
    and replace older APKs wherever you published them.
-2. **Antigravity.** Using Google Antigravity through this app is subject to Google's terms for the user's own
+2. **Google's closed libraries and the GPL.** The sign-in and the app-protection checks use Google libraries
+   that are not open source (listed at the end of section 3). The GPL has no exception for such libraries, and
+   AntiGem itself does not use them. Many GPL apps are published this way, but strictly it is not covered. To be
+   fully safe: ask the author of AntiGem for a short written permission to combine his code with these libraries,
+   or replace the Google sign-in with open-source code.
+3. **Antigravity.** Using Google Antigravity through this app is subject to Google's terms for the user's own
    account. Nothing here grants rights to Google's software or names.
-3. **Keys in the repository.** `app/saif-debug.jks` (debug signing key) and `app/google-services.json` are public
+4. **Keys in the repository.** `app/saif-debug.jks` (debug signing key) and `app/google-services.json` are public
    in this repository. They are for test builds only; use a private key for a real release.

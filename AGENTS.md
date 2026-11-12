@@ -34,6 +34,9 @@ Rules for every agent and every change:
   `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
 - Only add code whose licence fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar). Code under a licence
   with extra conditions (for example a compulsory credit in videos) must not be added.
+- The CI build prints the libraries that are really packaged in the APK as check annotations named
+  "APK libraries i/n" (last step of `.github/workflows/build-apk.yml`). When dependencies change, compare
+  section 3 of `THIRD_PARTY_NOTICES.md` with that list.
 - The assistant's spoken or typed answer to "who made you?" is the product persona (SAIF AI, see
   `SaifIdentity.RULE`). It is separate from these legal credits and must not be used as a reason to remove them.
 
