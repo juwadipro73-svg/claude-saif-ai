@@ -131,15 +131,64 @@ class WorkspaceModuleCleanerTest {
         file(project, ".gradle/8.9/fileHashes.bin")
         file(project, "app/build/intermediates/dex/classes.dex", "0123456789")
         file(project, "app/build/tmp/kotlin-classes/Main.class")
+        file(project, "app/build/generated/source/BuildConfig.java")
+        file(project, "app/build/kotlin/compileDebugKotlin/cache.bin")
         val apk = file(project, "app/build/outputs/apk/debug/app-debug.apk", "APK")
 
-        cleaner().clean(manual)
+        val result = cleaner().clean(manual)
 
         assertFalse(File(project, ".gradle").exists())
-        assertFalse(File(project, "app/build/intermediates").exists())
-        assertFalse(File(project, "app/build/tmp").exists())
+        listOf("intermediates", "tmp", "generated", "kotlin").forEach { name ->
+            assertFalse(name, File(project, "app/build/$name").exists())
+        }
         assertTrue("the finished APK must survive", apk.exists())
         assertTrue(moduleScript.exists() && kotlin.exists())
+        assertEquals(13L, result.removed.single { it.item.kind == "gradle-build" }.freedBytes)
+    }
+
+    @Test fun everyFinishedProductInAGradleBuildFolderStays() {
+        val project = File(workspace, "calculator")
+        file(project, "build.gradle")
+        // The in-app APK builder copies the signed APK straight into build/.
+        val builtInApp = file(project, "build/calculator.apk", "APK")
+        val jar = file(project, "build/libs/calculator-1.0.jar", "JAR")
+        val distribution = file(project, "build/distributions/calculator.zip", "ZIP")
+        val report = file(project, "build/reports/tests/index.html")
+        val bundle = file(project, "build/outputs/bundle/release/app.aab", "AAB")
+        val unknownFolder = file(project, "build/my-notes/todo.txt")
+        // A file that merely has the name of an intermediate folder is not a folder of intermediates.
+        val fileNamedTmp = file(project, "build/tmp", "not a folder")
+        file(project, "build/classes/java/main/Main.class", "1234")
+        file(project, "build/resources/main/app.properties", "12")
+
+        val result = cleaner().clean(manual)
+
+        assertTrue(builtInApp.exists() && jar.exists() && distribution.exists() && report.exists() && bundle.exists())
+        assertTrue(unknownFolder.exists() && fileNamedTmp.exists())
+        assertFalse(File(project, "build/classes").exists())
+        assertFalse(File(project, "build/resources").exists())
+        assertEquals(6L, result.freedBytes)
+    }
+
+    @Test fun nextJsKeepsItsBuildAndLosesOnlyTheCompilerCache() {
+        val project = File(workspace, "site")
+        file(project, "package.json", "{}")
+        val page = file(project, ".next/server/app/page.js", "PAGE")
+        val buildId = file(project, ".next/BUILD_ID", "abc")
+        file(project, ".next/cache/webpack/client-production/0.pack", "0123456789")
+        // Tool caches of other frameworks hold nothing finished and go completely.
+        file(project, ".turbo/cache/a.tar.zst", "12")
+        file(project, ".svelte-kit/generated/root.js", "1")
+        // Expo's folder holds device settings, not a cache.
+        val expo = file(project, ".expo/settings.json", "{}")
+
+        val result = cleaner().clean(manual)
+
+        assertTrue(page.exists() && buildId.exists() && expo.exists())
+        assertFalse(File(project, ".next/cache").exists())
+        assertFalse(File(project, ".turbo").exists())
+        assertFalse(File(project, ".svelte-kit").exists())
+        assertEquals(13L, result.freedBytes)
     }
 
     @Test fun gitHistoryIsNeverEntered() {
@@ -360,6 +409,122 @@ class WorkspaceModuleCleanerTest {
             server.destroyForcibly()
             install.destroyForcibly()
         }
+    }
+
+    @Test fun aRemovedFolderLeavesNoRenamedCopyBehind() {
+        val project = File(workspace, "shop")
+        file(project, "package.json", "{}")
+        file(project, "node_modules/react/index.js", "12345")
+        file(home, ".npm/_cacache/index-v5/aa", "1234")
+
+        val result = cleaner().clean(manual)
+
+        // The folder is renamed first and then deleted: afterwards neither it nor the renamed copy exists.
+        assertEquals(listOf("package.json"), project.list()!!.toList())
+        assertEquals(emptyList<String>(), File(home, ".npm").list()!!.toList())
+        assertEquals(9L, result.freedBytes)
+        // The result names the folder the user knows, not the temporary name.
+        assertEquals(File(project, "node_modules"), result.removed.first { it.item.kind == "node_modules" }.item.path)
+        assertTrue(result.errors.isEmpty())
+    }
+
+    @Test fun leftoversOfAnInterruptedRunAreRemovedEvenFromABusyProject() {
+        val prefix = WorkspaceModuleCleaner.TOMBSTONE_PREFIX
+        // The app was killed half-way through an earlier clean-up: a renamed folder is still lying in the project.
+        val project = File(workspace, "shop")
+        file(project, "package.json", "{}")
+        val source = file(project, "src/index.js")
+        file(project, "$prefix" + "node_modules-abc-0/react/index.js", "12345")
+        // The user has come back and reinstalled: the new modules must stay, the project is in use.
+        val fresh = file(project, "node_modules/react/index.js", "new")
+        busyDirs = listOf(File(project, "src"))
+        // Leftovers in the workspace root itself and next to a shared cache.
+        file(workspace, "package.json", "{}")
+        file(workspace, "$prefix" + "node_modules-abc-1/x.js", "12")
+        file(home, ".npm/$prefix" + "_cacache-abc-0/blob", "123")
+        // Not leftovers: a file with the prefix, and a folder that only contains the text somewhere in its name.
+        val prefixedFile = file(project, "$prefix" + "notes.txt")
+        val lookalike = file(project, "my$prefix" + "notes/keep.txt")
+
+        val result = cleaner().clean(automatic)
+
+        assertFalse(File(project, "$prefix" + "node_modules-abc-0").exists())
+        assertFalse(File(workspace, "$prefix" + "node_modules-abc-1").exists())
+        assertFalse(File(home, ".npm/$prefix" + "_cacache-abc-0").exists())
+        assertTrue(fresh.exists() && source.exists() && prefixedFile.exists() && lookalike.exists())
+        assertEquals(10L, result.freedBytes)
+        assertEquals("a program is running in this project", result.skipped.single { it.projectDir == project }.reason)
+        // Nothing has to be reinstalled because of a leftover, so the agent's log does not mention it.
+        assertFalse(ModuleCleanupRules.renderLog(result, File(base, "files").absolutePath, "2026-11-12 10:00").contains(prefix))
+    }
+
+    @Test fun aProjectWithOnlyALeftoverIsNotReportedAsSkipped() {
+        val project = File(workspace, "done")
+        file(project, "package.json", "{}")
+        file(project, WorkspaceModuleCleaner.TOMBSTONE_PREFIX + "node_modules-abc-0/a.js", "1")
+        busyDirs = listOf(project)
+
+        val result = cleaner().clean(automatic)
+
+        assertEquals(listOf("package.json"), project.list()!!.toList())
+        assertTrue(result.skipped.isEmpty())
+    }
+
+    @Test fun cleaningStopsWhenTheUserStartsWorkingAgain() {
+        listOf("a", "b", "c").forEach { name ->
+            file(File(workspace, name), "package.json", "{}")
+            file(File(workspace, name), "node_modules/x.js", "1")
+        }
+        file(home, ".npm/_cacache/blob", "1")
+
+        // Asked before anything is removed: nothing is touched.
+        val stoppedAtOnce = cleaner().clean(manual, shouldStop = { true })
+        assertTrue(stoppedAtOnce.stopped && stoppedAtOnce.removed.isEmpty())
+        assertEquals(3, listOf("a", "b", "c").count { File(workspace, "$it/node_modules/x.js").exists() })
+
+        // The user comes back after the first project was cleaned: the rest stays as it is.
+        var asked = 0
+        val stoppedLater = cleaner().clean(manual, shouldStop = { ++asked > 1 })
+        assertTrue(stoppedLater.stopped)
+        assertEquals(1, stoppedLater.removed.size)
+        assertEquals(2, listOf("a", "b", "c").count { File(workspace, "$it/node_modules/x.js").exists() })
+        assertTrue(File(home, ".npm/_cacache/blob").exists())
+
+        // Without an interruption everything goes and the result is not marked as stopped.
+        val finished = cleaner().clean(manual)
+        assertFalse(finished.stopped)
+        assertEquals(0, listOf("a", "b", "c").count { File(workspace, "$it/node_modules").exists() })
+        assertFalse(File(home, ".npm/_cacache").exists())
+    }
+
+    @Test fun cleaningTheSharedCachesAlsoStopsWhenTheUserReturns() {
+        file(home, ".npm/_cacache/blob", "1")
+        file(home, ".m2/repository/lib.jar", "12")
+
+        var asked = 0
+        val result = cleaner().clean(manual, shouldStop = { ++asked > 1 })
+
+        assertTrue(result.stopped)
+        assertEquals(1, result.removed.size)
+        // Exactly one of the two caches is gone; the other one was not started.
+        assertEquals(1, listOf(".npm/_cacache", ".m2/repository").count { File(home, it).exists() })
+    }
+
+    @Test fun aPackageManagerStartedThroughALoaderIsRecognised() {
+        val proc = File(base, "proc")
+        fun process(pid: Int, vararg words: String) = file(proc, "$pid/cmdline", words.joinToString("\u0000") + "\u0000")
+        // An editor with a file open, and a shell: no package manager is running.
+        process(101, "/usr/bin/nano", "/root/workspace/shop/notes.txt")
+        process(102, "/bin/bash", "-c", "cd /root/workspace && ls")
+        file(proc, "self/cmdline", "npm") // not a process id: ignored
+        assertFalse(ProcBusyProbe(proc).packageToolRunning())
+
+        // Programs in the Linux environment run through a loader, so the tool is not the first word.
+        process(
+            103, "/data/files/glibc/lib/ld-linux-aarch64.so.1", "--library-path", "/data/files/glibc/lib",
+            "/usr/bin/node", "/usr/bin/npm", "install"
+        )
+        assertTrue(ProcBusyProbe(proc).packageToolRunning())
     }
 
     @Test fun sizesAreReadable() {

@@ -165,8 +165,10 @@ object ModuleAutoCleaner {
                     linuxRoot = linuxRoot,
                     tempDir = File(filesDir, "tmp")           // /tmp inside Linux
                 )
+                // An automatic run ends as soon as the user starts a new chat turn; the turn's end reschedules it.
                 val result = cleaner.clean(
-                    CleanupOptions(minIdleMs = settings.idleMinutes * 60_000L, ignoreIdle = manual)
+                    CleanupOptions(minIdleMs = settings.idleMinutes * 60_000L, ignoreIdle = manual),
+                    shouldStop = { !manual && isWorking() }
                 )
                 record(app, result)
                 result
@@ -199,7 +201,7 @@ object ModuleAutoCleaner {
             .putLong(KEY_LAST_FREED, result.freedBytes)
             .putLong(KEY_TOTAL_FREED, saved.getLong(KEY_TOTAL_FREED, 0L) + result.freedBytes)
             .apply()
-        if (result.removed.isEmpty()) return
+        if (result.removed.none { it.item.kind != WorkspaceModuleCleaner.KIND_LEFTOVER }) return
         // The agent reads this file inside Linux to learn what to reinstall.
         try {
             val log = File(app.filesDir, "home/.config/saif-cleanup.md")
@@ -250,7 +252,7 @@ class ModuleCleanupWorker(context: Context, params: WorkerParameters) : Coroutin
                 null
             }
             // Projects that were busy or changed a moment ago are cleaned on a later pass.
-            result != null && (result.skipped.isNotEmpty() || result.sharedCachesSkippedReason != null)
+            result != null && (result.stopped || result.skipped.isNotEmpty() || result.sharedCachesSkippedReason != null)
         }
         if (lookAgain && attempt < ModuleAutoCleaner.MAX_ATTEMPTS) {
             ModuleAutoCleaner.schedule(app, ExistingWorkPolicy.APPEND_OR_REPLACE, attempt + 1)

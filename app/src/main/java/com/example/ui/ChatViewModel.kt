@@ -262,6 +262,17 @@ class ChatViewModel(
 
     
     fun processAudioToText(context: android.content.Context, file: File) {
+        // The microphone button is transcribed by Antigravity. A user with only an API key gets the reason in plain
+        // words instead of a connection error, and is not sent to a sign-in.
+        if (!engine.systemConnectionState.value.isReady) {
+            android.widget.Toast.makeText(
+                context,
+                "Voice typing needs an Antigravity connection, which is optional. Please type your message.",
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            file.delete()
+            return
+        }
         engine.agyBackend.transcribeAudioFile(file, onDone = { text ->
             _input.value = listOf(_input.value, text).filter { it.isNotBlank() }.joinToString(" ")
             file.delete()

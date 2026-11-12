@@ -53,7 +53,8 @@ object ModuleCleanupRules {
 
     /** The Markdown log the agent reads. Newest entries first; [previous] is the existing file, if any. */
     fun renderLog(result: CleanupResult, filesDir: String, timestamp: String, previous: String = "", maxEntries: Int = 60): String {
-        val newLines = result.removed.map { removed ->
+        // Leftovers of an interrupted run need no restore command, so the agent is not told about them.
+        val newLines = result.removed.filter { it.item.kind != WorkspaceModuleCleaner.KIND_LEFTOVER }.map { removed ->
             val item = removed.item
             "- `${linuxPath(item.path.absolutePath, filesDir)}` (${item.kind}, " +
                 "${WorkspaceModuleCleaner.formatBytes(removed.freedBytes)}) removed $timestamp - restore: ${item.restoreCommand}"

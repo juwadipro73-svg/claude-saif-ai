@@ -71,7 +71,7 @@ The same notices are inside the app: **Settings > Open-source licences & credits
 | Component | Files | Licence | Source |
 |---|---|---|---|
 | PRoot (Termux build) | `app/src/standard/assets/bin/proot`, `loader` | GNU GPL v2 or later. Copyright (C) 2015 STMicroelectronics. | <https://github.com/termux/proot> |
-| talloc | `app/src/standard/assets/bin/libtalloc.so.2`, `.../lib/libtalloc.so.2` | GNU LGPL v3 or later. Copyright (C) Andrew Tridgell and the Samba team. | <https://talloc.samba.org/> |
+| talloc | `app/src/standard/assets/bin/libtalloc.so.2`, `.../lib/libtalloc.so.2` | GNU LGPL v3 or later. Copyright (C) Andrew Tridgell 2004, Stefan Metzmacher 2006, and the Samba team. | <https://talloc.samba.org/> |
 | GNU C Library 2.44 (Termux glibc build) | `app/src/main/assets/glibc-min-arm64.tar` | GNU LGPL v2.1 or later. Copyright (C) Free Software Foundation, Inc. | <https://sourceware.org/glibc/>, build recipes: <https://github.com/termux-pacman/glibc-packages> |
 
 These binaries are used unchanged, as they came with AntiGem. Their licence texts are in `licenses/GPL-2.0.txt`,
@@ -124,7 +124,7 @@ Libraries that those libraries pull in themselves keep their own licences.
 | `github.com/dustin/go-humanize` | MIT | Copyright (c) 2005-2008 Dustin Sallings |
 | `github.com/mattn/go-isatty` | MIT | Copyright (c) Yasuhiro MATSUMOTO |
 | `github.com/ncruces/go-strftime` | MIT | Copyright (c) 2022 Nuno Cruces |
-| `modernc.org/sqlite`, `modernc.org/libc`, `modernc.org/mathutil`, `modernc.org/memory` | BSD-3-Clause | The respective modernc.org authors (see each module's LICENSE). SQLite itself is in the public domain. |
+| `modernc.org/sqlite`, `modernc.org/libc`, `modernc.org/mathutil`, `modernc.org/memory` | BSD-3-Clause | The respective modernc.org authors. SQLite itself is in the public domain. `modernc.org/libc` also carries the notices of the C library code it is translated from; see the LICENSE files inside each module. |
 
 ---
 
@@ -181,6 +181,9 @@ they are not a Google product and are not licensed by Google.
 ## 8. Open points that this file cannot solve (read before publishing widely)
 
 This file states facts that were checked against the upstream repositories on 2026-11-12. It is not legal advice.
+One group could not be re-checked from the build environment, because its Git host was not reachable: the
+licence files of `modernc.org/libc`, `modernc.org/mathutil` and `modernc.org/memory` (section 4). They are
+listed as their authors publish them; `modernc.org/sqlite` was checked.
 
 1. **GPL and TAMCL together.** The GPL does not allow extra conditions on the people who receive the program.
    TAMCL v1.0 adds one (the compulsory credit in videos). Strictly, the voice automation module therefore does not
