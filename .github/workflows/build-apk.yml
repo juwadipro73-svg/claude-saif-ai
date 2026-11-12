@@ -309,6 +309,7 @@ jobs:
 
     # Which libraries really end up in the APK. They are printed as check annotations, so the credits in
     # THIRD_PARTY_NOTICES.md can be compared with facts. Runs last; it can never fail the build or hold back the APK.
+    # One annotation carries at most 4096 characters, so the list is grouped and split into small parts.
     - name: List the libraries packaged in the APK
       if: success()
       continue-on-error: true
@@ -317,16 +318,25 @@ jobs:
         gradle :app:dependencies --configuration standardDebugRuntimeClasspath --no-daemon --no-configuration-cache > /tmp/apk-libraries.txt 2>&1 || true
         python3 - <<'PYEOF' || true
         import re
-        libraries = set()
+        groups = {}
         raw = open("/tmp/apk-libraries.txt", encoding="utf-8", errors="replace").read()
         for line in raw.splitlines():
             m = re.search(r"--- ([A-Za-z0-9_.\-]+):([A-Za-z0-9_.\-]+)(?::(\{[^}]*\}|[^\s]+))?(?: -> ([^\s]+))?", line)
             if m:
                 group, name, version, resolved = m.groups()
-                libraries.add("%s:%s:%s" % (group, name, resolved or version or "?"))
-        text = "\n".join(sorted(libraries)) or ("(no dependency list) " + raw[-1500:])
-        size = 30000
-        parts = [text[i:i + size] for i in range(0, len(text), size)]
+                groups.setdefault(group, set()).add("%s@%s" % (name, resolved or version or "?"))
+        lines = ["%s: %s" % (group, ", ".join(sorted(names))) for group, names in sorted(groups.items())]
+        if not lines:
+            lines = ["(no dependency list) " + raw[-1500:]]
+        parts, current = [], ""
+        for line in lines:
+            while len(line) > 3500:                      # one very long group: cut it
+                parts.append(line[:3500]); line = line[3500:]
+            if current and len(current) + len(line) + 1 > 3500:
+                parts.append(current); current = ""
+            current = line if not current else current + "\n" + line
+        if current:
+            parts.append(current)
         for i, chunk in enumerate(parts):
             esc = chunk.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
             print("::notice title=APK libraries %d/%d::%s" % (i + 1, len(parts), esc))
