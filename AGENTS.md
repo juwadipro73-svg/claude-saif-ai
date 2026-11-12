@@ -24,15 +24,33 @@
 
 ## Credits and licences: never remove them
 
-SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, the JARVIS AI Android
-assistant by Tech GPTx, Termux, PRoot and more). An earlier round removed the Tech GPTx credit; that broke its
-licence and had to be undone. Rules for every agent and every change:
+SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, Termux, PRoot and more).
+Rules for every agent and every change:
 
 - Do not delete or reword away any name, copyright line or licence in `LICENSE`, `THIRD_PARTY_NOTICES.md`,
-  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt` or the
-  settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
+  `licenses/` or the settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
 - Do not change the project to a proprietary or "all rights reserved" licence. It contains GPL code.
 - When you add a library or copy code, add it to `THIRD_PARTY_NOTICES.md` with its licence, then copy the file to
   `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
+- Only add code whose licence fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar). Code under a licence
+  with extra conditions (for example a compulsory credit in videos) must not be added.
 - The assistant's spoken or typed answer to "who made you?" is the product persona (SAIF AI, see
   `SaifIdentity.RULE`). It is separate from these legal credits and must not be used as a reason to remove them.
+
+### The `automation/` module was removed (2026-11-12)
+
+The live voice and phone-automation module `automation/` (Java package `com.jarvis.assistant`) was the "JARVIS AI
+Android assistant" by Tech GPTx (github.com/techgptx/Playlist) under its TAMCL v1.0 licence. The owner had it
+removed completely, with its licence file and its credits, because that licence does not fit the GPL.
+
+- Do not re-add the module and do not copy code from that project. `LegalNoticesBundleTest` fails when
+  `com.jarvis.assistant` or `SaifAutomation` is used again.
+- Removed with it: the purple live-voice button and the 3D orb, screen sharing inside a live session, voice
+  enrolment, the overlay avatar, the hands-free settings and the on-device Vosk speech fallback (`SttRouter` now
+  needs an OpenAI, Groq or Gemini key). Files removed from `:app`: `ui/components/SaifLiveOrb.kt`,
+  `SaifLiveModeSheet.kt`, `SaifLiveSettingsSection.kt` and `live/LiveTurnLoop.kt`.
+- Still there, and SAIF AI's own code: voice typing in the chat box, spoken replies (`TTSManager`, `SaifVoice`),
+  the "Hey Saif" wake word, the phone agent (`agent/`), `live/LiveCodingBridge.kt`, and the unused older
+  `LiveVoiceService` / `LiveVoiceSessionManager`. A new live-voice feature has to be written from scratch.
+- Older text in this file and in `docs/ROUND_*_REPORT.md` that mentions `SaifAutomation`,
+  `JarvisConversationService`, the orb or the purple mic describes code that no longer exists.

@@ -1,3 +1,5 @@
+> Note (2026-11-12): the live-voice automation module described in this report was later removed from the app, with its licence. See the last section of `CLAUDE.md`.
+
 # Round 10 report — SAIF AI Director update ZIP
 
 Four asks, all in this ZIP. Nothing was compiled in the sandbox (no JDK); every touched file was

@@ -20,7 +20,7 @@ class LegalNoticesBundleTest {
         assertEquals(file("LICENSE").readText(), file("$bundled/LICENSE").readText())
         assertEquals(file("THIRD_PARTY_NOTICES.md").readText(), file("$bundled/THIRD_PARTY_NOTICES.md").readText())
         val texts = file("licenses").listFiles { f -> f.isFile }!!.sortedBy { it.name }
-        assertTrue("licence texts", texts.size >= 9)
+        assertTrue("licence texts", texts.size >= 8)
         texts.forEach { text ->
             assertEquals(text.name, text.readText(), file("$bundled/licenses/${text.name}").readText())
         }
@@ -34,7 +34,6 @@ class LegalNoticesBundleTest {
         }
         assertEquals(SaifLegalNotices.CREDITS_PAGE, SaifLegalNotices.PAGES.first().second)
         assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("Santosh Kurmi"))
-        assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("Tech GPTx"))
         assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("NO WARRANTY"))
     }
 
@@ -54,31 +53,42 @@ class LegalNoticesBundleTest {
         val notices = file("THIRD_PARTY_NOTICES.md").readText()
         listOf(
             "Santosh Kurmi", "https://github.com/Santoshkurmi/antigem",
-            "Tech GPTx", "https://github.com/techgptx/Playlist", "TAMCL v1.0",
             "termux/termux-app", "Jack Palevich",
             "PRoot", "STMicroelectronics", "talloc", "GNU C Library",
             "sora-editor", "Rosemoe", "JLaTeXMath", "JSch", "jsoup", "Jonathan Hedley",
-            "Vosk", "Alpha Cephei", "OkHttp", "Coil", "Markwon", "Apache Commons Compress", "JNA",
+            "OkHttp", "Coil", "Markwon", "Apache Commons Compress",
             "gorilla/websocket", "google/uuid", "go-humanize", "go-isatty", "go-strftime", "modernc.org/sqlite",
             "The Go Authors", "The Android Open Source Project", "JetBrains"
         ).forEach { name -> assertTrue("credit missing: $name", notices.contains(name)) }
     }
 
-    @Test fun theVoiceModuleKeepsItsAuthorsCredit() {
-        // TAMCL v1.0: the Tech GPTx attribution may not be removed from code, interface or documentation.
-        assertEquals(file("automation/LICENSE").readText(), file("licenses/TAMCL-1.0.txt").readText())
-        assertTrue(file("automation/LICENSE").readText().contains("Copyright (c) 2026 Tech GPTx"))
-        val info = file("automation/src/main/java/com/jarvis/assistant/security/DeveloperInfo.kt").readText()
-        assertTrue(info.contains("const val DEVELOPER_NAME      = \"Tech GPTx\""))
-        assertTrue(info.contains("https://github.com/techgptx/Playlist"))
-        assertTrue(info.contains("TAMCL v1.0"))
-        assertFalse(info.contains("No external credits"))
-        val readme = file("automation/README.md").readText()
-        assertTrue(readme.contains("Tech GPTx"))
-        assertFalse(readme.contains("Owned and credited 100% to SAIF AI"))
-        val footer = file("automation/src/main/res/layout/fragment_settings.xml").readText()
-        assertTrue(footer.contains("Built on JARVIS Android Assistant by Tech GPTx"))
-        val prompt = file("automation/src/main/java/com/jarvis/assistant/util/PromptGenerator.kt").readText()
-        assertTrue(prompt.contains("JARVIS AI Android assistant by Tech GPTx"))
+    @Test fun theRemovedVoiceModuleIsCompletelyGone() {
+        // The owner had the third-party voice-automation module (Gradle module "automation", Java package
+        // com.jarvis.assistant) removed on 2026-11-12, together with its licence. Its licence adds conditions that
+        // do not fit the GPL, so neither the module nor code copied from it may come back.
+        assertFalse(file("automation").exists())
+        assertFalse(file("licenses/TAMCL-1.0.txt").exists())
+        assertFalse(file("$bundled/licenses/TAMCL-1.0.txt").exists())
+        assertFalse(file("settings.gradle.kts").readText().contains("automation"))
+        assertFalse(file("app/build.gradle.kts").readText().contains(":automation"))
+        assertFalse(SaifLegalNotices.PAGES.any { it.second.contains("TAMCL") })
+
+        val leftovers = listOf("app/src/main", "app/src/standard", "app/src/termux", "apprunner/src")
+            .map { file(it) }.filter { it.isDirectory }
+            .flatMap { dir -> dir.walkTopDown().filter { it.isFile && it.extension in setOf("kt", "java", "xml") }.toList() }
+            .filter { source ->
+                val text = source.readText()
+                text.contains("com.jarvis.assistant") || text.contains("SaifAutomation")
+            }
+            .map { it.path }
+        assertEquals("files that still use the removed module", emptyList<String>(), leftovers)
+
+        // Nothing of it is left to credit, so the notices and the app's licence screen no longer name it.
+        listOf("THIRD_PARTY_NOTICES.md", "README.md").forEach { name ->
+            val text = file(name).readText()
+            assertFalse(name, text.contains("TAMCL"))
+            assertFalse(name, text.contains("techgptx", ignoreCase = true))
+            assertFalse(name, text.contains("Tech GPTx", ignoreCase = true))
+        }
     }
 }

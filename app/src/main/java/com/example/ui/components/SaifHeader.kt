@@ -59,7 +59,6 @@ fun SaifHeader(
     onPlusClick: () -> Unit,
     onNewVideoProjectClick: () -> Unit = {},
     /** Kept for compatibility: the red "+" is gone, this now opens SAIF AI's live-conversation mode sheet. */
-    onAutomationClick: () -> Unit = {},
     isFilterBookmarked: Boolean,
     onToggleBookmarkFilter: () -> Unit,
     onUpgradeClick: () -> Unit,

@@ -252,7 +252,6 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
   // ---- SAIF AI core (Room, Firebase, Media3, Automation module) ----
-  implementation(project(":automation"))
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.room.ktx)
   ksp(libs.androidx.room.compiler)

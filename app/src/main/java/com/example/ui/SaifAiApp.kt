@@ -152,8 +152,6 @@ fun SaifAiApp(
             showEngineSettings = false
             showSettings = false
             showVoiceDialog = false
-            if (com.jarvis.assistant.SaifAutomation.isLiveRunning.value)
-                com.jarvis.assistant.SaifAutomation.stopLive(context.applicationContext)
         }
     }
     val openEngineView: (String?) -> Unit = { mode ->
@@ -184,21 +182,6 @@ fun SaifAiApp(
                 showSettings = false
                 showEngineSettings = true
             }
-        }
-    }
-    // One permission path for both the header automation button and every chat microphone.
-    val liveMicPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) com.example.ui.components.startNormal(context, isLightMode) {}
-        else android.widget.Toast.makeText(context, "Microphone permission is required for live conversation", android.widget.Toast.LENGTH_LONG).show()
-    }
-    val startLiveVoice: () -> Unit = {
-        if (androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECORD_AUDIO)
-            != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            liveMicPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
-        } else {
-            com.example.ui.components.startNormal(context, isLightMode) {}
         }
     }
     val engineAuthBusy by engineVm.isAuthBusy.collectAsState()
@@ -244,79 +227,6 @@ fun SaifAiApp(
     // Video Project Timeline Studio states
     var showVideoProjectDialog by remember { mutableStateOf(false) }
     var showNewProjectSheet by remember { mutableStateOf(false) }
-    // The purple mic starts a normal live conversation immediately. Screen share is optional INSIDE the session.
-
-    /**
-     * A MediaProjection can only be requested from a visible activity, so SAIF AI asks for it and then hands it to
-     * the automation engine (`SaifAutomation.startScreenShare`). The engine never opens its own permission screen.
-     */
-    val screenCapturePermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        if (result.resultCode != android.app.Activity.RESULT_OK || data == null) {
-            com.example.ui.components.SaifLiveSession.pendingScreenShare = false
-            android.widget.Toast.makeText(context, "Screen sharing needs your permission.", android.widget.Toast.LENGTH_LONG).show()
-            return@rememberLauncherForActivityResult
-        }
-        // Android 14+ requires a running media-projection foreground service BEFORE
-        // getMediaProjection(). Starting the service is asynchronous, so await it.
-        scope.launch {
-            val automation = com.jarvis.assistant.SaifAutomation
-            if (!automation.isLiveRunning.value) {
-                com.example.util.WakeWordAudioDetector.stop()
-                if (!automation.startLive(context, com.jarvis.assistant.SaifAutomation.LiveMode.SCREEN_SHARE, isLightMode)) {
-                    if (com.example.util.WakeWordManager.isWakeWordEnabledFlow.value &&
-                        com.example.util.WakeWordManager.isAppInForeground) {
-                        com.example.util.WakeWordAudioDetector.start(context)
-                    }
-                    com.example.ui.components.SaifLiveSession.pendingScreenShare = false
-                    return@launch
-                }
-            }
-            val ready = kotlinx.coroutines.withTimeoutOrNull(10_000L) {
-                automation.isLiveRunning.first { it }
-                true
-            } ?: false
-            if (!ready || !com.jarvis.assistant.background.JarvisConversationService.elevateToMediaProjection()) {
-                com.example.ui.components.SaifLiveSession.pendingScreenShare = false
-                android.widget.Toast.makeText(context, "Couldn't start the screen capture service.", android.widget.Toast.LENGTH_LONG).show()
-                return@launch
-            }
-            val mpm = context.getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
-            val projection = try { mpm.getMediaProjection(result.resultCode, data) } catch (_: Exception) { null }
-            if (projection == null) {
-                com.jarvis.assistant.background.JarvisConversationService.demoteFromMediaProjection()
-                com.example.ui.components.SaifLiveSession.pendingScreenShare = false
-                android.widget.Toast.makeText(context, "Screen capture access was not granted.", android.widget.Toast.LENGTH_LONG).show()
-                return@launch
-            }
-            val metrics = android.util.DisplayMetrics().also { dm ->
-                @Suppress("DEPRECATION")
-                (context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay.getRealMetrics(dm)
-            }
-            val started = automation.startScreenShare(projection, metrics)
-            if (started) automation.liveMode.value = com.jarvis.assistant.SaifAutomation.LiveMode.SCREEN_SHARE
-            else {
-                com.jarvis.assistant.background.JarvisConversationService.demoteFromMediaProjection()
-                runCatching { projection.stop() }
-            }
-            com.example.ui.components.SaifLiveSession.pendingScreenShare = false
-            android.widget.Toast.makeText(
-                context,
-                if (started) "Screen sharing started." else "Couldn't start screen sharing.",
-                android.widget.Toast.LENGTH_LONG
-            ).show()
-            if (started) {
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    val reason = automation.lastScreenShareError
-                    if (reason.isNotBlank()) {
-                        android.widget.Toast.makeText(context, "Screen share: $reason", android.widget.Toast.LENGTH_LONG).show()
-                    }
-                }, 9_000L)
-            }
-        }
-    }
     var activeVideoProjectData by remember { mutableStateOf<com.example.ui.components.VideoProjectData?>(null) }
     var showVideoStudio by remember { mutableStateOf(false) }
     var pendingVideoProjectName by remember { mutableStateOf("Cyberpunk Tokyo Vlog") }
@@ -403,10 +313,9 @@ fun SaifAiApp(
     val cornerGlowTrigger by com.example.util.WakeWordManager.cornerGlowTrigger.collectAsState()
     val initialSpokenQuery by com.example.util.WakeWordManager.initialSpokenQuery.collectAsState()
     val isWakeWordEnabled by com.example.util.WakeWordManager.isWakeWordEnabledFlow.collectAsState()
-    val isAutomationLive by com.jarvis.assistant.SaifAutomation.isLiveRunning.collectAsState()
 
     val isHomeScreen = !showProjectEditor && !showSettings && !showConfigureDialog &&
-        !showUpgradeDialog && !showModeSelector && !isAutomationLive
+        !showUpgradeDialog && !showModeSelector
 
     val appContext = LocalContext.current.applicationContext
     DisposableEffect(isHomeScreen, isWakeWordEnabled, isAssistantOverlayActive) {
@@ -538,7 +447,6 @@ fun SaifAiApp(
                         onOpenSettings = { showSettings = true },
                         onPlusClick = { showConfigureDialog = true },
                         onNewVideoProjectClick = { showNewProjectSheet = true },
-                        onAutomationClick = startLiveVoice,
                         isFilterBookmarked = isFilterBookmarked,
                         onToggleBookmarkFilter = { viewModel.toggleBookmarkFilter() },
                         onUpgradeClick = { showUpgradeDialog = true },
@@ -789,7 +697,6 @@ fun SaifAiApp(
                                 voiceRms = rms
                             },
                             stopVoiceListeningTrigger = stopVoiceListeningTrigger,
-                            onStartLiveVoice = startLiveVoice,
                             onGalleryClick = { 
                                 galleryLauncher.launch(
                                     androidx.activity.result.PickVisualMediaRequest(
@@ -1444,64 +1351,6 @@ fun SaifAiApp(
         if (showConnectionDialog) {
             SaifConnectionDialog(engineVm = engineVm, onDismiss = { showConnectionDialog = false })
         }
-        // The in-app live panel sits above chat, project editor, studio and engine views alike.
-        // Full-screen LIVE conversation: the SAIF AI AUTOMATION 3D orb, inside SAIF AI's own UI.
-        // (This replaced the old sparkle-star FloatingVoiceOverlay animation.)
-        val liveVoiceError by com.jarvis.assistant.SaifAutomation.liveError.collectAsState()
-        LaunchedEffect(liveVoiceError, isAutomationLive, isHomeScreen, isWakeWordEnabled) {
-            if (liveVoiceError != null && !isAutomationLive && isHomeScreen && isWakeWordEnabled) {
-                com.example.util.WakeWordAudioDetector.start(context.applicationContext)
-            }
-        }
-        androidx.compose.animation.AnimatedVisibility(
-            visible = isAutomationLive,
-            enter = androidx.compose.animation.fadeIn(),
-            exit = androidx.compose.animation.fadeOut()
-        ) {
-            com.example.ui.components.SaifLiveConversationPanel(
-                isLightMode = isLightMode,
-                onClose = { com.jarvis.assistant.SaifAutomation.stopLive(context) },
-                onRequestScreenShare = {
-                    com.example.ui.components.SaifLiveSession.pendingScreenShare = true
-                    screenCapturePermissionLauncher.launch(
-                        (context.getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE)
-                            as android.media.projection.MediaProjectionManager).createScreenCaptureIntent()
-                    )
-                }
-            )
-        }
-        // When the service fails during startup it drops isLiveRunning immediately, so the orb
-        // disappears. Show the *actual* reason here instead of leaving the user with a dead mic.
-        if (!isAutomationLive && liveVoiceError != null) {
-            val error = liveVoiceError!!
-            AlertDialog(
-                onDismissRequest = { com.jarvis.assistant.SaifAutomation.clearLiveError() },
-                title = { Text(error.title) },
-                text = { Text(error.message) },
-                confirmButton = {
-                    when (error.errorCode) {
-                        "API_KEY_MISSING" -> TextButton(onClick = {
-                            com.jarvis.assistant.SaifAutomation.clearLiveError()
-                            showSettings = true
-                        }) { Text("Open Settings") }
-                        "MIC_PERMISSION_REQUIRED" -> TextButton(onClick = {
-                            com.jarvis.assistant.SaifAutomation.clearLiveError()
-                            liveMicPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
-                        }) { Text("Allow microphone") }
-                        else -> TextButton(onClick = {
-                            com.jarvis.assistant.SaifAutomation.clearLiveError()
-                            startLiveVoice()
-                        }) { Text("Try again") }
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { com.jarvis.assistant.SaifAutomation.clearLiveError() }) {
-                        Text("Dismiss")
-                    }
-                }
-            )
-        }
-
         SaifEngineLoginDialogs(engineVm = engineVm)
     } // Close Box
 }

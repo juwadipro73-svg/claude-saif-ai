@@ -10,11 +10,7 @@ import com.example.data.remote.AIApiUtility
 import com.example.data.remote.ModelResolver
 import com.example.data.remote.ModelRole
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -120,15 +116,16 @@ object SttRouter {
 
         val state = ProviderSettingsManager.loadState()
         val userKeys = state.apiKeys.map { AIApiUtility.sanitizeKey(it) }.filter { it.isNotBlank() && !it.contains("MY_") }
+        // Keys saved under "Use my own API key" count as well, so voice typing works for a user whose only key
+        // is there. Only keys of providers that can transcribe are taken (see SttKeys).
+        val ownProfileKeys = runCatching {
+            SttKeys.speechCapable(
+                com.example.agyext.AntigravityCustomApiManager.getState(context).profiles.map { it.baseUrl to it.apiKey }
+            )
+        }.getOrDefault(emptyList()).map { AIApiUtility.sanitizeKey(it) }.filter { it.isNotBlank() }
 
         // Find candidate STT routes based on configured provider and keys
-        val candidates = resolveSttCandidates(state.providerName, userKeys)
-
-        // Providers such as Anthropic and OpenRouter do not expose an STT endpoint.
-        // The existing Vosk model is used on-device instead of requiring a second API key.
-        if (candidates.isEmpty() && context != null) {
-            com.jarvis.assistant.audio.VoskModelManager.init(context.applicationContext, CoroutineScope(SupervisorJob() + Dispatchers.IO))
-        }
+        val candidates = resolveSttCandidates(state.providerName, userKeys, ownProfileKeys)
 
         val vocabPrompt = buildVocabularyPrompt(profile, context)
         var lastFailureReason = "All STT candidates failed"
@@ -210,28 +207,10 @@ object SttRouter {
             }
         }
 
-        val vosk = com.jarvis.assistant.audio.VoskModelManager
-        if (!vosk.isModelReady.value && context != null) {
-            // Round 10: the on-device model is the universal fallback that makes live voice work with ANY
-            // API key, so wait longer for its one-time download instead of giving up after 20 s.
-            withTimeoutOrNull(if (candidates.isEmpty()) 60_000L else 15_000L) { vosk.isModelReady.first { it } }
-        }
-        if (vosk.isModelReady.value) {
-            // AudioPrep writes a standard 44-byte PCM WAV header for live turns.
-            val pcm = if (wavBytes.size > 44 && String(wavBytes, 0, 4, Charsets.US_ASCII) == "RIFF")
-                wavBytes.copyOfRange(44, wavBytes.size) else wavBytes
-            val raw = vosk.transcribePcm(pcm).orEmpty()
-            val decision = TranscriptGuard.evaluate(raw, durationMs, snrDb = snrDb, voicedRatio = voicedRatio)
-            if (decision.isAccepted) {
-                return@withContext SttResult(
-                    text = TranscriptRepair.repair(decision.sanitizedText, context),
-                    provider = "Vosk (on device)", model = "vosk-model-small-en-us",
-                    latencyMs = System.currentTimeMillis() - start
-                )
-            }
-            if (raw.isNotBlank()) lastFailureReason = decision.rejectionReason ?: "No speech recognised"
-        } else if (candidates.isEmpty()) {
-            lastFailureReason = "Offline speech model is not ready. Connect to the internet to download it, or add an OpenAI, Groq or Gemini speech key."
+        // Providers such as Anthropic and OpenRouter do not expose a speech-to-text endpoint, and the app has no
+        // on-device speech model: the reason is said plainly instead of a generic failure.
+        if (candidates.isEmpty()) {
+            lastFailureReason = "Voice input needs an OpenAI, Groq or Gemini API key. Add one with \"Use my own API key\"."
         }
         SttResult("", latencyMs = System.currentTimeMillis() - start, rejectedReason = lastFailureReason)
     }
@@ -244,7 +223,16 @@ object SttRouter {
         val modelName: String
     )
 
-    private fun resolveSttCandidates(activeProvider: String, userKeys: List<String>): List<SttCandidate> {
+    /**
+     * @param userKeys keys of the provider chosen in the AI provider settings ([activeProvider])
+     * @param ownProfileKeys speech-capable keys from "Use my own API key". They are matched by their own prefix
+     * only and are never sent to another provider's server.
+     */
+    private fun resolveSttCandidates(
+        activeProvider: String,
+        userKeys: List<String>,
+        ownProfileKeys: List<String> = emptyList()
+    ): List<SttCandidate> {
         val candidates = mutableListOf<SttCandidate>()
 
         // 1. First priority: Does the user's active provider natively support STT?
@@ -265,7 +253,7 @@ object SttRouter {
 
         // 2. Fallback: Search all user keys for other STT-capable providers
         // Note: xAI/Grok (xai-...) is deliberately excluded here because Grok does not provide an STT endpoint.
-        for (k in userKeys) {
+        for (k in (userKeys + ownProfileKeys).distinct()) {
             if (k.startsWith("gsk_") && candidates.none { it.service == SttServiceType.GROQ }) {
                 candidates.add(SttCandidate(SttServiceType.GROQ, k, "whisper-large-v3"))
             } else if (k.startsWith("sk-") && !k.startsWith("sk-or-") && !k.startsWith("sk-ant-") && !k.startsWith("xai-") && candidates.none { it.service == SttServiceType.OPENAI }) {

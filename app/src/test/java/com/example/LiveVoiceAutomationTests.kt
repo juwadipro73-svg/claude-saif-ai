@@ -4,20 +4,10 @@ import com.example.util.AutonomousScreenAgent
 import com.example.util.DeviceAction
 import com.example.util.DeviceActionParser
 import com.example.utils.TTSManager
-import com.jarvis.assistant.SaifApiConfig
 import org.junit.Assert.*
 import org.junit.Test
 
 class LiveVoiceAutomationTests {
-
-    @Test fun nativeGeminiRequiresAConfiguredGeminiKey() {
-        assertFalse(SaifApiConfig("Gemini", "", "gemini-live").canUseNativeGemini(true))
-        assertFalse(SaifApiConfig("", "", "").canUseNativeGemini(true))
-        assertFalse(SaifApiConfig("OpenAI", "sk-example", "gpt-test").canUseNativeGemini(true))
-        assertFalse(SaifApiConfig("Gemini", "sk-not-google", "gemini-live").canUseNativeGemini(true))
-        assertTrue(SaifApiConfig("Gemini", "AIza-example", "gemini-live").canUseNativeGemini(true))
-        assertFalse(SaifApiConfig("Gemini", "AIza-example", "gemini-live").canUseNativeGemini(false))
-    }
 
     @Test
     fun testYouTubePlayFirstVideoCommand() {

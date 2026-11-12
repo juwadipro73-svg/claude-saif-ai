@@ -229,14 +229,6 @@ fun BuildAIScreen(
         if (uri != null) attachedUris.add(uri)
     }
 
-    val liveLightMode = com.example.ui.theme.SaifTheme.colors.isLight
-    val micPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) startNormal(context, liveLightMode) {}
-        else Toast.makeText(context, "Microphone permission is required for live conversation", Toast.LENGTH_LONG).show()
-    }
-
     // Colors matching SAIF AI Signature Theme
     val bgDark = Color(0xFF232220)
     val cardBg = Color(0xFF1F1E1D)
@@ -784,13 +776,6 @@ fun BuildAIScreen(
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Voice note recorded", Toast.LENGTH_SHORT).show()
                             }
-                        }
-                    },
-                    onStartLiveVoice = {
-                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        } else {
-                            startNormal(context, liveLightMode) {}
                         }
                     },
                     onGalleryClick = {

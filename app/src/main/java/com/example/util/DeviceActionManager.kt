@@ -49,7 +49,7 @@ sealed class DeviceAction {
     data class ReadNotifications(val appFilter: String? = null) : DeviceAction()
     data class VolumeControl(val direction: String) : DeviceAction() // "up", "down", "mute"
 
-    // Autonomous Jarvis Multi-step Power Actions
+    // Autonomous multi-step power actions
     data class CapCutProject(val mediaType: String = "video") : DeviceAction()
     data class WhatsAppLiveLocation(val recipient: String, val duration: String = "1 hour") : DeviceAction()
     data class YouTubePlayAndSubscribe(val query: String, val autoSubscribe: Boolean = true, val autoLike: Boolean = false) : DeviceAction()

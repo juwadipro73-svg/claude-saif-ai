@@ -306,3 +306,28 @@ jobs:
         files: |
           app/build/outputs/apk/standard/debug/app-standard-debug.apk
           app/build/outputs/apk/standard/debug/SAIF-AI-fixed-b${{ github.run_number }}.apk
+
+    # Which libraries really end up in the APK. They are printed as check annotations, so the credits in
+    # THIRD_PARTY_NOTICES.md can be compared with facts. Runs last; it can never fail the build or hold back the APK.
+    - name: List the libraries packaged in the APK
+      if: success()
+      continue-on-error: true
+      shell: bash
+      run: |
+        gradle :app:dependencies --configuration standardDebugRuntimeClasspath --no-daemon --no-configuration-cache > /tmp/apk-libraries.txt 2>&1 || true
+        python3 - <<'PYEOF' || true
+        import re
+        libraries = set()
+        raw = open("/tmp/apk-libraries.txt", encoding="utf-8", errors="replace").read()
+        for line in raw.splitlines():
+            m = re.search(r"--- ([A-Za-z0-9_.\-]+):([A-Za-z0-9_.\-]+)(?::(\{[^}]*\}|[^\s]+))?(?: -> ([^\s]+))?", line)
+            if m:
+                group, name, version, resolved = m.groups()
+                libraries.add("%s:%s:%s" % (group, name, resolved or version or "?"))
+        text = "\n".join(sorted(libraries)) or ("(no dependency list) " + raw[-1500:])
+        size = 30000
+        parts = [text[i:i + size] for i in range(0, len(text), size)]
+        for i, chunk in enumerate(parts):
+            esc = chunk.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+            print("::notice title=APK libraries %d/%d::%s" % (i + 1, len(parts), esc))
+        PYEOF

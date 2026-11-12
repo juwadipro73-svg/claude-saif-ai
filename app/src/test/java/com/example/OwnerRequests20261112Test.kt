@@ -60,9 +60,5 @@ class OwnerRequests20261112Test {
             "$ui/LiveVoiceSessionManager.kt",
             "$ui/ui/components/GeminiAssistantSheet.kt"
         ).forEach { path -> assertTrue(path, text(path).contains("SaifIdentity.")) }
-        // The voice engine is a separate module and carries the same answer in its own prompt.
-        val voice = text("automation/src/main/java/com/jarvis/assistant/util/PromptGenerator.kt")
-        assertTrue(voice.contains("that you are SAIF AI and that SAIF AI made you"))
-        assertFalse(voice.contains("created, developed, and trained by Rehaan Sir"))
     }
 }

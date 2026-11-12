@@ -96,19 +96,18 @@ data class VoiceProfile(
 )
 
 val VOICE_PROFILES = listOf(
-    // Round 9: the voice of SAIF AI AUTOMATION, brought into the main app as the DEFAULT voice everywhere
-    // (chat replies, live baatcheet and video narration all read the same setting - see utils/SaifVoice.kt).
+    // SAIF AI's own voice profile. Chat replies and video narration read the same setting (utils/SaifVoice.kt).
     VoiceProfile(
         id = "SaifAdvance",
         name = "SAIF ADVANCE VOICE",
-        description = "SAIF AI ki apni advance awaaz — warm, smart aur natural (Hindi & English). Live baatcheet, chat aur video narration sab isi me.",
+        description = "SAIF AI ki apni advance awaaz — warm, smart aur natural (Hindi & English). Chat aur video narration sab isi me.",
         emotion = "\u2728 Warm & Intelligent",
         gender = "Male",
         pitch = 1.00f,
         speechRate = 1.00f,
-        previewHinglish = "Namaste! Mai SAIF Advance Voice hoon. Aapke saath naturally baat karunga, screen bhi dekh sakta hoon, aur video bhi bana sakta hoon.",
-        previewEnglish = "Hello, I am the SAIF Advance Voice. Natural, warm and ready to talk, watch your screen or build your video.",
-        // Best natural Indian voices first; the live engine asks a Gemini-Live provider for "Puck" instead.
+        previewHinglish = "Namaste! Mai SAIF Advance Voice hoon. Aapke saath naturally baat karunga aur video bhi bana sakta hoon.",
+        previewEnglish = "Hello, I am the SAIF Advance Voice. Natural, warm and ready to talk or build your video.",
+        // Best natural Indian voices first.
         targetEngineNameMatches = listOf(
             "en-in-x-end-network", "en-in-x-ene-local", "hi-in-x-hia-network", "hi-in-x-hia-local",
             "en-in-x-cxx-network", "en_in", "hi_in"
