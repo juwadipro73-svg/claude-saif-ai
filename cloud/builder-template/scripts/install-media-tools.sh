@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Install FFmpeg and the DejaVu font used by render_video.py on an Ubuntu Actions runner.
-# apt on hosted runners can stall for tens of minutes on a degraded Ubuntu mirror node without
-# ever failing (actions/runner-images#14594). Every apt call is therefore time-limited, the
-# network phases are retried on a fresh connection, and packages are downloaded before dpkg
-# runs so that a retry never interrupts an installation.
+# When the first Ubuntu mirror of a hosted runner stops answering, apt waits out its timeout on
+# every single index and package before it falls back, which turns a one-minute installation
+# into more than 30 minutes without any error (actions/runner-images#14594). Every apt call is
+# therefore time-limited, a failed attempt continues with the next mirror of the runner's list,
+# and the packages are downloaded before dpkg runs so that a retry never interrupts an
+# installation.
 set -uo pipefail
 packages=(ffmpeg fonts-dejavu-core)
+mirrors=/etc/apt/apt-mirrors.txt  # hosted runners: one "<url> priority:<n>" line per mirror
 out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 
@@ -25,6 +28,12 @@ run_apt() {  # run_apt <seconds> <apt-get arguments...>
   return "$status"
 }
 
+skip_first_mirror() {  # the next attempt starts with the following mirror, if the runner lists one
+  [[ -f "$mirrors" ]] && (( $(grep -c . "$mirrors") > 1 )) || return 0
+  echo "::warning::Skipping the apt mirror $(awk 'NR == 1 { print $1 }' "$mirrors")"
+  sudo sed -i 1d "$mirrors"
+}
+
 fail() {  # fail <message>: one error annotation that ends with the last apt output
   local last
   last="$(tail -n 20 "$out")"
@@ -36,11 +45,15 @@ fail() {  # fail <message>: one error annotation that ends with the last apt out
 }
 
 for attempt in 1 2 3; do
-  # A failed update is not fatal by itself: the lists of an unrelated source may be out of date.
   run_apt 60 update
-  run_apt 150 install -y --download-only "${packages[@]}" && break
+  status=$?
+  # A timeout means that the mirror stalls. Any other update error may come from an unrelated
+  # source, so the download is still tried.
+  if (( status != 124 && status != 137 )) && run_apt 150 install -y --download-only "${packages[@]}"; then
+    break
+  fi
   (( attempt < 3 )) || fail "Could not download ${packages[*]} in 3 attempts"
-  sleep 5
+  skip_first_mirror
 done
 run_apt 360 install -y --no-download "${packages[@]}" || fail "Could not install ${packages[*]}"
 test -f /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf || fail 'DejaVuSans.ttf is missing after the installation'
