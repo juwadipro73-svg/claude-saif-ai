@@ -1,0 +1,28 @@
+SAIF AI PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 SAIF AI. All rights reserved.
+
+1. OWNERSHIP
+The SAIF AI application and the source code, designs, text, graphics and other material
+written by or for SAIF AI ("the Software") are the property of SAIF AI.
+
+2. NO LICENCE EXCEPT AS GRANTED
+No right to copy, modify, publish, sublicense, distribute, sell, reverse engineer or create
+derivative works of the Software is granted unless SAIF AI has agreed to it in writing. End users
+may install and use the officially distributed application under the terms offered with that
+distribution.
+
+3. THIRD-PARTY COMPONENTS
+This licence covers only material owned by SAIF AI. The Software depends on and bundles
+third-party libraries and runtime files that remain under their own licences. Nothing in this
+file changes or replaces those licences. They are listed in THIRD_PARTY_NOTICES.md, and their
+notices must be kept with every distribution.
+
+4. NO WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+IN NO EVENT SHALL SAIF AI BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE
+USE OF THE SOFTWARE.
+
+5. CONTACT
+Licensing enquiries: SAIF AI (add the official contact e-mail here before publishing).

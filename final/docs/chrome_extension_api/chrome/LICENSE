@@ -1,0 +1,7 @@
+SAIF AI Browser Extension Protocol Specification
+
+Copyright (c) 2026 SAIF AI Technologies. All rights reserved.
+
+The extension runtime schemas and type definitions provided in this directory
+define the client interaction contract for SAIF AI In-App Research Browser extensions.
+Usage is governed by the SAIF AI Sovereign Source License.
