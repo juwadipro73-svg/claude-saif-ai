@@ -169,7 +169,7 @@ fun SaifResearchBrowserView(
 
                         webChromeClient = object : WebChromeClient() {
                             override fun onProgressChanged(targetView: WebView?, progressValue: Int) {
-                                progressVal = newProgress / 100f
+                                progressVal = progressValue / 100f
                             }
                         }
 

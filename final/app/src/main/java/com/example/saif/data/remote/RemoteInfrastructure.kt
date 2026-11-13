@@ -26,6 +26,7 @@ enum class SystemStatus(val label: String, val dotColor: androidx.compose.ui.gra
 
 data class SystemConnectionState(val status: SystemStatus = SystemStatus.UNAUTHENTICATED) {
     val isReady: Boolean get() = status == SystemStatus.READY
+    val dotColor get() = status.dotColor
 }
 
 object AgyHubClient {
@@ -43,31 +44,6 @@ object GoogleAccountBinding {
 object AntigravityAppBinding /* SAIF Binding */ {
     fun init(context: Context) {}
     fun clear() {}
-}
-
-data class SkillItemModel(
-    val name: String,
-    val description:
-        String = "",
-    val instructions: String = "",
-    val githubUrl: String = ""
-)
-
-object SavedAiSkills /* SAIF Skills */ {
-    private val _skills = MutableStateFlow<List<SkillItemModel>>(emptyList())
-    val skills: StateFlow<List<SkillItemModel>> = _skills.asStateFlow()
-
-    fun bind(context: Context, uid: String?) {}
-    fun migrateAccount(context: Context, prev: String?, current: String?) {}
-    fun visibleSkills(): List<SkillItemModel> = _skills.value
-    fun find(name: String): SkillItemModel? = _skills.value.find { it.name.equals(name, ignoreCase = true) }
-    fun delete(skillName: String) {
-        _skills.value = _skills.value.filterNot { it.name.equals(skillName, ignoreCase = true) }
-    }
-    fun importFromGitHub(url: String, name: String): Boolean {
-        _skills.value = _skills.value + SkillItemModel(name = name, githubUrl = url)
-        return true
-    }
 }
 
 object SkillSlashParsing /* SAIF Parsing */ {
@@ -93,18 +69,24 @@ data class SlashCommandItem
 )
 
 object CustomSlashCommands /* SAIF Commands */ {
-    fun init(app: Application) {}
+    fun init(app: Context) {}
     fun customCommands(): List<SlashCommandItem> = emptyList()
 }
 
 object PromptExpansion /* SAIF Expansion */ {
-    fun expand(text: String): String = text
+    fun expand(text: String): String {
+        val parsed = SkillSlashParsing.parse(text) ?: return text
+        val skill = SavedAiSkills.find(parsed.command) ?: return text
+        return "User-selected skill /${skill.name}:\n${skill.instructions}\n\nUser request: ${parsed.args}"
+    }
     fun pluginSuggestions(query: String): List<SlashCommandItem> = emptyList()
-    fun baseSlashItems(): List<SlashCommandItem> = emptyList()
+    fun baseSlashItems(): List<SlashCommandItem> = SavedAiSkills.visibleSkills().map {
+        SlashCommandItem("/${it.name}", "/${it.name}", it.description, type = "skill")
+    }
 }
 
 object SlashCommandsCache /* SAIF Cache */ {
     val DEFAULT_SKILLS = emptyList<SlashCommandItem>()
     val BUILTIN_COMMANDS = emptyList<SlashCommandItem>()
-    fun getCachedSync(): List<SlashCommandItem>? = emptyList()
+    fun getCachedSync(): List<SlashCommandItem> = emptyList()
 }

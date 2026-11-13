@@ -308,7 +308,7 @@ fun SettingsSheet(
             val displayName = user?.name?.ifBlank { user.email.substringBefore("@").replaceFirstChar { it.uppercase() } } ?: "User"
             val engineEmail = engineAuthInfo?.takeIf { it.isLoggedIn && it.email.isNotBlank() }?.email
             val engineAvatarModel = remember(engineAuthInfo?.profilePictureUrl) {
-                com.example.saif.ui.drawer.parseProfileAvatarModel(engineAuthInfo?.profilePictureUrl)
+                engineAuthInfo?.profilePictureUrl?.takeIf { it.isNotBlank() }
             }
             val displayEmail = user?.email?.ifBlank { "guest@saif.ai" } ?: "guest@saif.ai"
             val initialLetter = user?.initialLetter ?: displayName.take(1).uppercase().ifBlank { "U" }

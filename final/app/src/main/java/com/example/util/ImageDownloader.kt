@@ -56,7 +56,7 @@ object ImageDownloader {
             }
         }
 
-        val resolver = context.resolver
+        val resolver = context.contentResolver
         
         try {
             resolver.also { resolver ->

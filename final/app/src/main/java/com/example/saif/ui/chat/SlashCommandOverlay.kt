@@ -11,8 +11,8 @@ import com.example.saif.data.remote.SlashCommandItem
 
 @Composable
 fun SlashCommandOverlay(items: List<SlashCommandItem>, query: String,
-    runsOnTap: (SlashCommandItem) -> Boolean, onPick: (SlashCommandItem) -> Unit) {
-    Surface(tonalElevation = 4.dp) {
+    runsOnTap: (SlashCommandItem) -> Boolean, onPick: (SlashCommandItem) -> Unit, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier, tonalElevation = 4.dp) {
         LazyColumn(Modifier.fillMaxWidth().heightIn(max = 240.dp)) {
             items(items, key = { it.command }) { item ->
                 TextButton(onClick = { onPick(item) }, modifier = Modifier.fillMaxWidth()) {

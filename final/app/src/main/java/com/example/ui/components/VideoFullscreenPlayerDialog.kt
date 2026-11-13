@@ -71,7 +71,7 @@ fun VideoFullscreenPlayerDialog(
                         model = activeClip.uri,
                         contentDescription =
     null,
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Fit,
                         modifier =
     Modifier.fillMaxSize()
                     )

@@ -216,7 +216,7 @@ fun LibraryManagerScreen(
                     ) {
                         com.example.ui.components.MorphingIconButton(onClick = onBack) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Navigate back from Library",
                                 tint = textLight,
                                 modifier =

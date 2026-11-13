@@ -51,7 +51,7 @@ fun SaifSkillsManagerDialog(
     var errorMsg by remember { mutableStateOf<String?>(null) }
     var successMsg by remember { mutableStateOf<String?>(null) }
 
-    val skills = SavedAiSkills.visibleSkills()
+    val skills by SavedAiSkills.skills.collectAsState()
     val surfaceBg = if (isLightMode) Color(0xFFFBFBFD) else Color(0xFF14131A)
     val cardBg = if (isLightMode) Color(0xFFF1F0F7) else Color(0xFF1E1C28)
     val borderCol = if (isLightMode) Color(0x22000000) else Color(0x26FFFFFF)
@@ -86,7 +86,7 @@ fun SaifSkillsManagerDialog(
     Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.AutoAwesome,
+                        imageVector = Icons.Outlined.AutoAwesome,
                         contentDescription =
     null,
                         tint = accentCol,
