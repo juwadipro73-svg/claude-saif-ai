@@ -11,6 +11,7 @@ class SaifApplication : Application() {
         super.onCreate()
         com.example.util.TaskNotifications.initialize(this)
         ProviderSettingsManager.init(this)
+        com.example.llm.AntigravityLlmBridge.init(this)
 
         // Initialize SAIF AI Sovereign Engine & Memory
         SaifEngineBootstrap.initialize(this)
