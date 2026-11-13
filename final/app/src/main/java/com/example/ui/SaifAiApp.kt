@@ -624,26 +624,10 @@ fun SaifAiApp(
                             }
                         }
                         if (isGenerating) {
-                            val approvals = com.example.saif.ui.agents.agyApprovalItems(
-                                mainAgentApprovals,
-                                onApprove = { tool, id, approvalScope -> viewModel.approveMainTool(tool, id, approvalScope) },
-                                onReject = { tool, id, reason -> viewModel.rejectMainTool(tool, id, reason) }
-                            )
-                            if (approvals.isNotEmpty()) {
-                                com.example.saif.ui.agents.AgentApprovalPanel(
-                                    items = approvals,
-                                    onAllowAll = { viewModel.approveAllMainTools(mainAgentApprovals) },
-                                    onDenyAll = { viewModel.rejectAllMainTools(mainAgentApprovals) }
-                                )
-                            } else {
-                                val question = com.example.saif.ui.agents.findPendingQuestion(com.example.saif.domain.model.AgentKind.AGY, mainAgentMessages)
-                                if (question != null) {
-                                    com.example.saif.ui.agents.AgentQuestionPanel(
-                                        question = question,
-                                        onSubmit = { responses, summary -> viewModel.submitMainChoices(question.toolCall, question.messageId, responses, summary) },
-                                        onSkip = { responses -> viewModel.skipMainChoices(question.toolCall, question.messageId, responses) },
-                                        onCancel = { viewModel.cancelMainChoices(question.toolCall, question.messageId) }
-                                    )
+                            if (mainAgentApprovals.isNotEmpty()) {
+                                Row {
+                                    TextButton(onClick = { viewModel.approveAllMainTools(mainAgentApprovals) }) { Text("Allow pending commands") }
+                                    TextButton(onClick = { viewModel.rejectAllMainTools(mainAgentApprovals) }) { Text("Deny all") }
                                 }
                             }
                         }
@@ -801,7 +785,7 @@ fun SaifAiApp(
                             onSignIn = { engineVm.loginToAgyHub(force = true) },
                             onRetry = {
                                 engineVm.retryConnections()
-                                com.example.saif.data.local.LocalServerManager.restartServer(context.applicationContext)
+                                com.example.saif.data.remote.AndroidLocalBridgeServer.instance.start(context.applicationContext)
                             },
                             modifier =
     Modifier.fillMaxSize()

@@ -116,7 +116,7 @@ object VideoAnalyzer {
         null
     } catch (e: SecurityException) { "no permission to read this file" }
     catch (e: IllegalArgumentException) { "the file location is not valid (${e.message ?: "bad argument"})" }
-    catch (e: RuntimeException) { "the media engine cannot open it (${e.message ?: err.javaClass.simpleName})" }
+    catch (e: RuntimeException) { "the media engine cannot open it (${e.message ?: e.javaClass.simpleName})" }
 
     private fun copyToCache(context: Context, uri: Uri): File {
         val dir = File(context.cacheDir, "director_probe").apply { mkdirs() }

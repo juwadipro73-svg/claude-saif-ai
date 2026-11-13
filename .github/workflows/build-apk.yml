@@ -4,7 +4,8 @@ on:
     branches: ['arena/**']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+  checks: write
 concurrency:
   group: apk-${{ github.ref }}
   cancel-in-progress: true
@@ -49,6 +50,26 @@ jobs:
                   chunk = text[i:i+3500].replace('%','%25').replace('\r','').replace('\n','%0A')
                   print('::error::' + chunk)
           PY
+      - name: Publish complete compiler diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, json, subprocess, re
+          from pathlib import Path
+          p = Path('build-ci.log')
+          if p.exists():
+              lines = p.read_text(errors='replace').splitlines()
+              errors = [re.sub(r'e: file:///.*?/final/app/src/main/java/', '', l) for l in lines if l.startswith('e: ')]
+              text = '\n'.join(errors or lines[-100:])
+              for i in range(0, len(text), 55000):
+                  payload = dict(name=f'Compiler diagnostics {i//55000+1}', head_sha=os.environ['GITHUB_SHA'],
+                      status='completed', conclusion='neutral', output=dict(title='Build failure details (not an APK)',
+                      summary='```text\n'+text[i:i+55000]+'\n```'))
+                  subprocess.run(['gh','api','--method','POST',f"repos/{os.environ['GITHUB_REPOSITORY']}/check-runs",'--input','-'],
+                      input=json.dumps(payload), text=True, check=True, stdout=subprocess.DEVNULL)
+          PYTHON
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
@@ -63,3 +84,23 @@ jobs:
           path: final/app/build/outputs/apk/standard/debug/*.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Verify and publish direct APK download
+        if: github.ref == 'refs/heads/arena/9a04a45b-claude-saif-ai'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find app/build/outputs/apk/standard/debug -name '*.apk' -type f)
+          test "${#apks[@]}" -eq 1
+          signer=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)
+          "$signer" verify --verbose "${apks[0]}"
+          name="SAIF-AI-native-debug-b${GITHUB_RUN_NUMBER}.apk"
+          cp "${apks[0]}" "$name"
+          sha256sum "$name" > "$name.sha256"
+          tag="saif-ai-native-b${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" "$name" "$name.sha256" --target "$GITHUB_SHA" --prerelease \
+            --title "SAIF AI native debug preview — build ${GITHUB_RUN_NUMBER}" \
+            --notes "Installable debug APK built from ${GITHUB_SHA}. APK signature verified; unit/device tests not run. Main chat uses your configured Custom API. Removed hub OAuth/quotas and Linux toolchain installation are not available in this native preview. Debug signing is for testing, not a production security guarantee."
+          echo "### APK download" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/${name}" >> "$GITHUB_STEP_SUMMARY"

@@ -7,7 +7,7 @@ import android.widget.Toast
 import com.saifai.core.SaifVoiceEngine
 
 /**
- * 100% Cleanroom SAIF AI Live Voice session stub and session holder.
+ * SAIF AI live voice session holder.
  * Replaces legacy automation session without any third-party dependencies.
  */
 object SaifLiveSession {
@@ -18,8 +18,8 @@ object SaifLiveSession {
  * Starts a cleanroom SAIF AI voice session with Kabir voice authority.
  */
 fun startNormal(context: Context, isLightMode: Boolean = false, onStarted: () -> Unit = {}) {
-    Toast.makeText(context, "SAIF AI Kabir Voice Active", Toast.LENGTH_SHORT).show()
-    SaifVoiceEngine.initialize(context)
-    SaifVoiceEngine.speak("SAIF AI ready.")
+    if (!com.example.LiveVoiceManager.isLiveModeActive.value) {
+        com.example.LiveVoiceManager.toggleLiveVoice(context)
+    }
     onStarted()
 }

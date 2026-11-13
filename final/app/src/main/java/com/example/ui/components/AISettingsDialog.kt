@@ -44,7 +44,7 @@ fun AISettingsDialog(
     onDismiss: () -> Unit = {},
     onConfigSaved: () -> Unit = {}
 ) {
-    val modalShape = RoundedCornerShape(all = 22.dp)
+    val modalShape = RoundedCornerShape(22.dp)
     val modalSurfaceColor = if (isDarkTheme) Color(0xFF242321) else Color(0xFFFCFCFB)
     val modalStrokeColor = if (isDarkTheme) Color(0xFF3E3B36) else Color(0xFFE2DFD4)
     val scrollState = rememberScrollState()

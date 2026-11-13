@@ -33,3 +33,7 @@ typealias ToolType = SaifToolType
 typealias ToolCall = SaifToolCall
 typealias ChatMessage = SaifChatMessage
 typealias ChatAttachment = SaifChatAttachment
+
+// Models supplied by the user's provider configuration, not a remote hub catalog.
+data class AiModel(val id: String, val displayName: String, val description: String = "")
+data class ModelQuota(val modelId: String, val remainingFraction: Float)

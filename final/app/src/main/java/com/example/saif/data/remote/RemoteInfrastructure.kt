@@ -14,60 +14,36 @@ object AndroidLocalBridgeServer {
     val instance: SaifLocalBridgeServer get() = SaifLocalBridgeServer.instance
 }
 
-data class SystemStatus(
-    val isConnected: Boolean = true,
-    val activeEngine: String = "SAIF Cleanroom Engine"
-)
+enum class SystemStatus(val label: String, val dotColor: androidx.compose.ui.graphics.Color) {
+    READY("Provider configured", androidx.compose.ui.graphics.Color(0xFF42C9A3)),
+    UNAUTHENTICATED("Configure API provider", androidx.compose.ui.graphics.Color(0xFFF3B65A)),
+    OFFLINE("Offline", androidx.compose.ui.graphics.Color.Gray),
+    ERROR("Connection error", androidx.compose.ui.graphics.Color.Red),
+    CHECKING_AUTH("Checking configuration", androidx.compose.ui.graphics.Color.Gray),
+    ACQUIRING_CSRF("Preparing", androidx.compose.ui.graphics.Color.Gray),
+    STARTING("Starting", androidx.compose.ui.graphics.Color.Gray)
+}
 
-sealed class SystemConnectionState /* SAIF Connection */ {
-    data object Connected : SystemConnectionState()
-    data object Disconnected : SystemConnectionState()
-    data class Connecting(val attempt: Int = 1) : SystemConnectionState()
+data class SystemConnectionState(val status: SystemStatus = SystemStatus.UNAUTHENTICATED) {
+    val isReady: Boolean get() = status == SystemStatus.READY
+    val dotColor get() = status.dotColor
 }
 
 object AgyHubClient {
-    data class AgyAuthInfo
-(
-        val email:
-        String? = null,
-        val displayName:
-        String? = null,
-        val profilePictureUrl: String? = null
-    )
+    // Retained data name for stored/UI compatibility, not a hub client.
+    data class AgyAuthInfo(val email: String = "", val displayName: String = "",
+        val profilePictureUrl: String = "", val fullName: String = "", val isLoggedIn: Boolean = false,
+        val planName: String = "Own API key")
 }
 
-object GoogleAccountBinding /* SAIF Binding */ {
-    fun denialReason(user: Any?, authInfo: Any?): String? = null
+object GoogleAccountBinding {
+    fun denialReason(user: com.example.data.local.AuthUser?, authInfo: AgyHubClient.AgyAuthInfo): String? =
+        if (user == null || !user.isActive || user.isBanned) "Sign in to an active SAIF AI account to use chat history." else null
 }
 
 object AntigravityAppBinding /* SAIF Binding */ {
     fun init(context: Context) {}
     fun clear() {}
-}
-
-data class SkillItemModel(
-    val name: String,
-    val description:
-        String = "",
-    val instructions: String = "",
-    val githubUrl: String = ""
-)
-
-object SavedAiSkills /* SAIF Skills */ {
-    private val _skills = MutableStateFlow<List<SkillItemModel>>(emptyList())
-    val skills: StateFlow<List<SkillItemModel>> = _skills.asStateFlow()
-
-    fun bind(context: Context, uid: String?) {}
-    fun migrateAccount(context: Context, prev: String?, current: String?) {}
-    fun visibleSkills(): List<SkillItemModel> = _skills.value
-    fun find(name: String): SkillItemModel? = _skills.value.find { it.name.equals(name, ignoreCase = true) }
-    fun delete(skillName: String) {
-        _skills.value = _skills.value.filterNot { it.name.equals(skillName, ignoreCase = true) }
-    }
-    fun importFromGitHub(url: String, name: String): Boolean {
-        _skills.value = _skills.value + SkillItemModel(name = name, githubUrl = url)
-        return true
-    }
 }
 
 object SkillSlashParsing /* SAIF Parsing */ {
@@ -93,17 +69,24 @@ data class SlashCommandItem
 )
 
 object CustomSlashCommands /* SAIF Commands */ {
-    fun init(app: Application) {}
+    fun init(app: Context) {}
     fun customCommands(): List<SlashCommandItem> = emptyList()
 }
 
 object PromptExpansion /* SAIF Expansion */ {
+    fun expand(text: String): String {
+        val parsed = SkillSlashParsing.parse(text) ?: return text
+        val skill = SavedAiSkills.find(parsed.command) ?: return text
+        return "User-selected skill /${skill.name}:\n${skill.instructions}\n\nUser request: ${parsed.args}"
+    }
     fun pluginSuggestions(query: String): List<SlashCommandItem> = emptyList()
-    fun baseSlashItems(): List<SlashCommandItem> = emptyList()
+    fun baseSlashItems(): List<SlashCommandItem> = SavedAiSkills.visibleSkills().map {
+        SlashCommandItem("/${it.name}", "/${it.name}", it.description, type = "skill")
+    }
 }
 
 object SlashCommandsCache /* SAIF Cache */ {
     val DEFAULT_SKILLS = emptyList<SlashCommandItem>()
     val BUILTIN_COMMANDS = emptyList<SlashCommandItem>()
-    fun getCachedSync(): List<SlashCommandItem>? = emptyList()
+    fun getCachedSync(): List<SlashCommandItem> = emptyList()
 }

@@ -233,7 +233,7 @@ object SaifSlashCommandRegistry {
         // 1. Enabled Specialist Agents
         val agentItems = SaifAgentRegistry.state.value.enabledAgents.map { agent ->
             SlashCommandItem(
-                name = "agent-${agent.slug}",
+                displayCommand = agent.slashTrigger,
                 command = agent.slashTrigger,
                 description = "${agent.name} (${agent.category.displayName}) — ${agent.description}",
                 type = "agent",

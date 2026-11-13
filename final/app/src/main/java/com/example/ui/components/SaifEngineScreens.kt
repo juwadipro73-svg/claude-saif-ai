@@ -61,7 +61,7 @@ private val SaifPurple = Color(0xFF7C5CE0)
 
 /**
  * The centre of an empty SAIF AI chat.
- *  - not signed in  -> "Sign in to SAIF AI" + Sign In button
+ *  - not signed in  -> "Connect your AI provider" + Sign In button
  *  - connecting     -> a small spinner with the step
  *  - offline/error  -> what is wrong + Reconnect
  *  - signed in      -> just the glowing SAIF AI mark (no greeting text)
@@ -109,14 +109,14 @@ fun SaifEmptyState(
                 SaifMarkCircle(icon = Icons.Default.Person, tint = SaifPurple)
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Sign in to SAIF AI",
+                    "Connect your AI provider",
                     color = c.textPrimary, fontSize =
     20.sp, fontWeight =
     FontWeight.SemiBold, textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Please sign in to send messages, manage chat history, and interact with your workspace.",
+                    "Configure your own API key and model in Settings to start working.",
                     color = c.textSecondary, fontSize =
     14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center
                 )
@@ -140,7 +140,7 @@ fun SaifEmptyState(
     Modifier.size(18.dp))
                     }
                     Spacer(Modifier.width(8.dp))
-                    Text("Sign In", fontSize =
+                    Text("Configure Provider", fontSize =
     15.sp, fontWeight =
     FontWeight.Medium)
                 }
@@ -229,170 +229,12 @@ private fun SaifMarkCircle(icon: androidx.compose.ui.graphics.vector.ImageVector
  * Everything the old engine screen offered for this (sign in, sign out, reconnect, restart) lives here.
  */
 @Composable
-fun SaifConnectionDialog(
-    engineVm: EngineChatViewModel,
-    onDismiss: () -> Unit
-) {
-    val c = SaifTheme.colors
-    val context =
-    LocalContext.current
-    val connection by engineVm.systemConnectionState.collectAsState()
-    val authInfo by engineVm.agyAuthInfo.collectAsState()
-    val authBusy by engineVm.isAuthBusy.collectAsState()
-    val status = connection.status
-    val signedIn = status == SystemStatus.READY
-    val appUser by com.example.data.local.AuthManager.currentUser.collectAsState()
-    val accountIssue = if (signedIn) com.example.saif.data.remote.GoogleAccountBinding.denialReason(appUser, authInfo) else null
-    val name = authInfo.displayName.ifBlank { authInfo.fullName }.ifBlank { authInfo.email }
-
-    AlertDialog(
-        onDismissRequest =
-    onDismiss,
-        containerColor = c.surfaceCard,
-        titleContentColor = c.textPrimary,
-        textContentColor = c.textSecondary,
-        shape =
-    RoundedCornerShape(22.dp),
-        title = { Text("SAIF AI connection", fontWeight =
-    FontWeight.Bold, fontSize =
-    18.sp) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment =
-    Alignment.CenterVertically) {
-                    Box(Modifier.size(11.dp).background(status.dotColor, CircleShape))
-                    Spacer(Modifier.width(10.dp))
-                    Text(if (accountIssue != null) "Account verification needed" else status.label,
-                        color = c.textPrimary, fontSize =
-    15.sp, fontWeight =
-    FontWeight.SemiBold)
-                }
-                if (accountIssue != null) {
-                    Text(accountIssue, color = Color(0xFFEF4444), fontSize =
-    13.5.sp)
-                }
-                if (signedIn && name.isNotBlank()) {
-                    Text("Signed in as $name", fontSize =
-    13.5.sp)
-                    if (authInfo.email.isNotBlank() && authInfo.email != name) {
-                        Text(authInfo.email, fontSize =
-    12.5.sp)
-                    }
-                } else if (status == SystemStatus.UNAUTHENTICATED) {
-                    Text("You are not signed in yet.", fontSize =
-    13.5.sp)
-                } else if (status == SystemStatus.OFFLINE || status == SystemStatus.ERROR) {
-                    Text("SAIF AI is not connected. Reconnect, or restart the local server.", fontSize =
-    13.5.sp)
-                }
-            }
-        },
-        confirmButton = {
-            when (status) {
-                SystemStatus.UNAUTHENTICATED -> Button(
-                    onClick = { engineVm.loginToAgyHub(force = true); onDismiss() },
-                    enabled = !authBusy,
-                    colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White)
-                ) { Text("Sign In") }
-
-                SystemStatus.READY -> Row {
-                    if (accountIssue != null) {
-                        TextButton(onClick = { engineVm.loginToAgyHub(force = true); onDismiss() }) {
-                            Text("Sign in for this account", color = SaifPurple)
-                        }
-                    }
-                    TextButton(onClick = { engineVm.logoutFromAgyHub(); onDismiss() }) {
-                        Text("Sign out Antigravity", color = Color(0xFFEF4444))
-                    }
-                }
-
-                SystemStatus.OFFLINE, SystemStatus.ERROR -> Button(
-                    onClick = {
-                        engineVm.retryConnections()
-                        com.example.saif.data.local.LocalServerManager.restartServer(context.applicationContext)
-                        onDismiss()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White)
-                ) { Text("Reconnect") }
-
-                else -> TextButton(onClick = { engineVm.retryConnections(); onDismiss() }) {
-                    Text("Refresh", color = SaifPurple)
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Close", color = c.textSecondary) }
-        }
-    )
+fun SaifConnectionDialog(engineVm: EngineChatViewModel, onDismiss: () -> Unit) {
+    com.example.agyext.AntigravityCustomApiDialog(onDismiss = onDismiss)
 }
 
-/** The browser sign-in confirmations the engine used to show itself, now in SAIF AI's own dialog style. */
 @Composable
 fun SaifEngineLoginDialogs(engineVm: EngineChatViewModel) {
-    val c = SaifTheme.colors
-    val context =
-    LocalContext.current
-    val pendingLoginUrl by engineVm.pendingLoginUrl.collectAsState()
-    val loginIssue by engineVm.agyLoginIssue.collectAsState()
-
-    val openUrl: (String) -> Unit = { url ->
-        try {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) })
-        } catch (_: Exception) {
-        }
-    }
-
-    val targetUrl = pendingLoginUrl
-    if (targetUrl != null) {
-        AlertDialog(
-            onDismissRequest = { engineVm.clearPendingLoginUrl() },
-            containerColor = c.surfaceCard,
-            titleContentColor = c.textPrimary,
-            textContentColor = c.textSecondary,
-            shape =
-    RoundedCornerShape(22.dp),
-            title = { Text("Connect Antigravity", fontWeight =
-    FontWeight.Bold, fontSize =
-    18.sp) },
-            text = { Text("Antigravity uses a separate Google sign-in inside SAIF AI. Open the browser to authorize this connection?", fontSize =
-    14.sp) },
-            confirmButton = {
-                Button(
-                    onClick = { openUrl(targetUrl); engineVm.clearPendingLoginUrl() },
-                    colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White)
-                ) { Text("Open Browser", fontWeight =
-    FontWeight.SemiBold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { engineVm.clearPendingLoginUrl() }) { Text("Cancel", color = c.textSecondary) }
-            }
-        )
-    }
-
-    val issue = loginIssue
-    if (issue != null) {
-        AlertDialog(
-            onDismissRequest = { engineVm.clearAgyLoginIssue() },
-            containerColor = c.surfaceCard,
-            titleContentColor = c.textPrimary,
-            textContentColor = c.textSecondary,
-            shape =
-    RoundedCornerShape(22.dp),
-            title = { Text("Account verification required", fontWeight =
-    FontWeight.Bold, fontSize =
-    18.sp) },
-            text = { Text(issue.message, fontSize =
-    14.sp) },
-            confirmButton = {
-                Button(
-                    onClick = { openUrl(issue.verificationUrl); engineVm.clearAgyLoginIssue() },
-                    colors = ButtonDefaults.buttonColors(containerColor = SaifPurple, contentColor = Color.White)
-                ) { Text("Verify Account", fontWeight =
-    FontWeight.SemiBold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { engineVm.clearAgyLoginIssue() }) { Text("Cancel", color = c.textSecondary) }
-            }
-        )
-    }
+    val show by engineVm.showProviderSetup.collectAsState()
+    if (show) com.example.agyext.AntigravityCustomApiDialog(onDismiss = { engineVm.showProviderSetup.value = false })
 }

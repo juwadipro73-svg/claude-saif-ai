@@ -32,8 +32,8 @@ object SaifBroadcastNotificationHelper {
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
                 description = "Critical system announcements, model updates, and notifications from SAIF AI Admin"
-                enableVibration(value = true)
-                enableLights(value = true)
+                enableVibration(true)
+                enableLights(true)
                 setShowBadge(true)
             }
             val notificationManager =

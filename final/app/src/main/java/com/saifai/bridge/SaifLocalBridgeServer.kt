@@ -77,6 +77,11 @@ class SaifLocalBridgeServer private constructor() {
         }
     }
 
+    fun ensureLinuxCliReady(context: Context) {
+        File(context.filesDir, "home").mkdirs()
+        start(context)
+    }
+
     fun registerDownloadFile(context: Context, file: File, desiredFileName: String? = null): String {
         start(context)
         val rawName = (desiredFileName?.takeIf { it.isNotBlank() } ?: file.name)
@@ -123,17 +128,11 @@ class SaifLocalBridgeServer private constructor() {
 
                     if (entry != null && entry.file.exists()) {
                         val length = entry.file.length()
-                        val header = "HTTP/1.1 200 OK
-" +
-                                "Content-Type: ${entry.mimeType}
-" +
-                                "Content-Length: $length
-" +
-                                "Content-Disposition: attachment; filename="${entry.fileName}"
-" +
-                                "Connection: close
-
-"
+                        val header = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: ${entry.mimeType}\r\n" +
+                            "Content-Length: $length\r\n" +
+                            "Content-Disposition: attachment; filename=\"${entry.fileName}\"\r\n" +
+                            "Connection: close\r\n\r\n"
                         output.write(header.toByteArray(Charsets.UTF_8))
 
                         FileInputStream(entry.file).use { fis ->
@@ -150,11 +149,7 @@ class SaifLocalBridgeServer private constructor() {
                 }
 
                 // Default 404
-                val notFound = "HTTP/1.1 404 Not Found
-Content-Length: 0
-Connection: close
-
-"
+                val notFound = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
                 output.write(notFound.toByteArray(Charsets.UTF_8))
                 output.flush()
             }

@@ -99,7 +99,7 @@ class SaifMcpServerHub private constructor() {
         try {
             tool.handler(arguments)
         } catch (err: Throwable) {
-            "Tool execution exception: ${t.localizedMessage}"
+            "Tool execution exception: ${err.localizedMessage}"
         }
     }
 

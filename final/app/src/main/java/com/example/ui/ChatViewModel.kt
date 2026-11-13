@@ -32,182 +32,45 @@ class ChatViewModel(
     private val repository: ChatRepository,
     private val application: android.app.Application
 ) : ViewModel() {
-    private val engine by lazy { com.example.saif.ui.chat.ChatViewModelHolder.get(application) }
-    private val mainChatStore = com.example.saif.data.agent.ChatSessionStore()
     private val customApiStore = com.example.saif.data.agent.ChatSessionStore()
-    private val _activeAgentIsCustomApi = MutableStateFlow(false)
     private val customApiEngine by lazy {
-        com.example.agyext.AntigravityCustomApiAgentEngine(
-            appContext = application,
-            scope = viewModelScope,
-            store = customApiStore,
-            isAutoApproveProvider = { com.example.ui.components.SaifEngineSettings.isAutoApprove(application) }
-        )
+        com.example.agyext.AntigravityCustomApiAgentEngine(application, viewModelScope, customApiStore,
+            isAutoApproveProvider = { com.example.ui.components.SaifEngineSettings.isAutoApprove(application) })
     }
-    private val mainChatBackend by lazy {
-        com.example.saif.data.agent.agy.AgyChatBackend(
-            application, viewModelScope, engine.authPreferences, mainChatStore,
-            isNetworkConnectedProvider = { true }, onHubOnline = {},
-            // Settings → "Auto approve": ON = run commands without asking, OFF = ask the user first (default).
-            commandPolicyProvider = {
-                if (com.example.ui.components.SaifEngineSettings.isAutoApprove(application)) "CASCADE_COMMANDS_AUTO_EXECUTION_EAGER"
-                else "CASCADE_COMMANDS_AUTO_EXECUTION_OFF"
-            },
-            authInfoProvider = { engine.agyAuthInfo.value }
-        )
-    }
-    val antigravityModels: StateFlow<List<com.example.saif.domain.model.AiModel>> by lazy {
-        combine(
-            com.example.agyext.AntigravityCustomApiManager.stateFlow,
-            engine.agyBackend.availableModels
-        ) { extState, hubModels ->
-            if (extState.isActiveAndReady) {
-                val readyProfiles = extState.profiles.filter { it.isReady() }
-                val multiProfile = readyProfiles.size > 1
-                readyProfiles.flatMap { prof ->
-                    prof.effectiveModels().map { modelId ->
-                        val shortName = modelId.substringAfterLast('/')
-                        val label = if (multiProfile) "${prof.name} · $shortName" else "${prof.name}: $shortName"
-                        com.example.saif.domain.model.AiModel.fromApi(
-                            id = "${prof.id}::$modelId",
-                            displayName = label,
-                            description = prof.baseUrl
-                        )
-                    }
-                }
-            } else {
-                hubModels
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    }
-    val antigravitySelectedModel: StateFlow<String> by lazy {
-        combine(
-            com.example.agyext.AntigravityCustomApiManager.stateFlow,
-            engine.agyBackend.selectedModelId
-        ) { extState, hubSelected ->
-            val active = extState.activeProfile
-            if (extState.isActiveAndReady && active != null) {
-                "${active.id}::${active.selectedModel}"
-            } else {
-                hubSelected
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
-    }
-    val antigravityConnection: StateFlow<com.example.saif.data.remote.SystemConnectionState> by lazy {
-        combine(
-            com.example.agyext.AntigravityCustomApiManager.stateFlow,
-            engine.systemConnectionState
-        ) { extState, hubConn ->
-            val active = extState.activeProfile
-            if (extState.isActiveAndReady && active != null) {
-                com.example.saif.data.remote.SystemConnectionState.Connected(
-                    hubStatus = "online",
-                    hubUrl = active.baseUrl,
-                    isAuth = true,
-                    isAuthChecking = false,
-                    hasCsrfToken = true
-                )
-            } else {
-                hubConn
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, com.example.saif.data.remote.SystemConnectionState.Offline)
-    }
-    val antigravityAuthInfo: StateFlow<com.example.saif.data.remote.AgyHubClient.AgyAuthInfo> by lazy {
-        combine(
-            com.example.agyext.AntigravityCustomApiManager.stateFlow,
-            com.example.data.local.AuthManager.currentUser,
-            engine.agyAuthInfo
-        ) { extState, appUser, hubAuth ->
-            val active = extState.activeProfile
-            if (extState.isActiveAndReady && active != null) {
-                com.example.saif.data.remote.AgyHubClient.AgyAuthInfo(
-                    status = com.example.saif.data.remote.AgyHubClient.AgyAuthStatus.AUTHENTICATED,
-                    isLoggedIn = true,
-                    fullName = "${active.name} (${active.selectedModel})",
-                    email = appUser?.email.orEmpty(),
-                    planName = "Antigravity Custom API"
-                )
-            } else {
-                hubAuth
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, com.example.saif.data.remote.AgyHubClient.AgyAuthInfo())
-    }
-    val antigravityQuotas get() = engine.agyBackend.quotas
-    fun selectAntigravityModel(id: String) {
-        if (com.example.agyext.AntigravityCustomApiManager.getState(application).isActiveAndReady || id.contains("::")) {
-            com.example.agyext.AntigravityCustomApiManager.selectModelFromComposer(application, id)
-        } else {
-            engine.agyBackend.selectModel(id)
-        }
-    }
-    suspend fun connectGoogleFlow(context: android.content.Context): String {
-        val appContext = context.applicationContext
-        com.example.saif.data.remote.AndroidLocalBridgeServer.instance.start(appContext)
-        val manager = com.example.saif.ui.browser.BrowserExtensionManager.instance
-        manager.init(appContext)
-        manager.ensureHost()
-        val extension = manager.loadExtensions().firstOrNull { it.id == "google-flow" && it.isEnabled }
-            ?: error("Bundled Google Flow plugin is missing or disabled.")
-        manager.tools(extension.id) // verify that the plugin host answers before writing configuration
-        val raw = com.example.saif.data.daemon.IdeApiClient.getMcpConfig()
-            ?: error("Could not read existing MCP configuration. Start the local server and retry.")
-        val config = org.json.JSONObject(raw)
-        val servers = config.optJSONObject("mcpServers") ?: org.json.JSONObject().also { config.put("mcpServers", it) }
-        val deviceId = android.provider.Settings.Secure.getString(appContext.contentResolver, android.provider.Settings.Secure.ANDROID_ID).orEmpty()
-        servers.put(manager.mcpServerName(extension.id), org.json.JSONObject()
-            .put("serverUrl", manager.mcpUrl(extension.id))
-            .put("headers", org.json.JSONObject().put("X-Device-Id", deviceId)))
-        check(com.example.saif.data.daemon.IdeApiClient.saveMcpConfig(config.toString(2))) { "Could not save Flow MCP configuration. Is the local server running?" }
-        engine.agyBackend.agyHubClient.refreshMcpServers().getOrThrow()
-        com.example.saif.ui.browser.BrowserSessionManager.instance.openUrl("https://flow.google.com/", newTab = true)
-        engine.requestViewMode("BROWSER")
-        return "Flow MCP configured. Sign in to Google Flow in the in-app browser, then test the connection."
-    }
-    val mainAgentMessages: StateFlow<List<com.example.saif.domain.model.ChatMessage>> by lazy {
-        combine(
-            _activeAgentIsCustomApi,
-            customApiStore.messages,
-            mainChatBackend.messages
-        ) { useCustom, customMsgs, hubMsgs ->
-            if (useCustom) customMsgs else hubMsgs
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    }
+    private val providerState = com.example.agyext.AntigravityCustomApiManager.stateFlow
+    val antigravityModels = providerState.map { state ->
+        state.profiles.filter { it.isReady() }.flatMap { profile -> profile.effectiveModels().map {
+            com.example.saif.domain.model.AiModel("${profile.id}::$it", "${profile.name}: ${it.substringAfterLast('/')}")
+        } }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val antigravitySelectedModel = providerState.map { state ->
+        state.activeProfile?.let { "${it.id}::${it.selectedModel}" }.orEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, "")
+    val antigravityConnection = providerState.map { state ->
+        com.example.saif.data.remote.SystemConnectionState(
+            if (state.isActiveAndReady) com.example.saif.data.remote.SystemStatus.READY
+            else com.example.saif.data.remote.SystemStatus.UNAUTHENTICATED)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, com.example.saif.data.remote.SystemConnectionState())
+    val antigravityAuthInfo = combine(providerState, com.example.data.local.AuthManager.currentUser) { state, user ->
+        com.example.saif.data.remote.AgyHubClient.AgyAuthInfo(
+            email = user?.email.orEmpty(), displayName = state.activeProfile?.name.orEmpty(),
+            fullName = user?.name.orEmpty(), isLoggedIn = user != null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, com.example.saif.data.remote.AgyHubClient.AgyAuthInfo())
+    // BYOK providers do not expose a common quota API. Never fabricate balances.
+    val antigravityQuotas = MutableStateFlow<List<com.example.saif.domain.model.ModelQuota>>(emptyList())
+    fun selectAntigravityModel(id: String) = com.example.agyext.AntigravityCustomApiManager.selectModelFromComposer(application, id)
+    suspend fun connectGoogleFlow(context: android.content.Context): String =
+        "Google Flow MCP is not configured in this native build. Use the browser to open Flow directly."
+    val mainAgentMessages: StateFlow<List<com.example.saif.domain.model.ChatMessage>> = customApiStore.messages
     private val _mainAgentSessionId = MutableStateFlow<String?>(null)
     val mainAgentSessionId: StateFlow<String?> = _mainAgentSessionId.asStateFlow()
     private var sessionLoadJob: Job? = null
-    fun terminateMainTool(tool: com.example.saif.domain.model.ToolCall, id: String) {
-        if (_activeAgentIsCustomApi.value) customApiEngine.terminateRunningTool(tool)
-        else mainChatBackend.terminateRunningTerminalTool(tool, id)
-    }
-    val mainAgentApprovals: StateFlow<List<com.example.saif.ui.chat.PendingToolApproval>> by lazy {
-        combine(
-            _activeAgentIsCustomApi,
-            customApiEngine.pendingApprovals,
-            mainChatBackend.pendingApprovals
-        ) { useCustom, customApp, hubApp ->
-            if (useCustom) customApp else hubApp
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-    }
-    fun approveMainTool(tool: com.example.saif.domain.model.ToolCall, messageId: String, scope: String?) {
-        if (_activeAgentIsCustomApi.value) customApiEngine.approveTool(tool, scope)
-        else mainChatBackend.approveAndExecuteTerminalTool(tool, messageId, scope)
-    }
-    fun rejectMainTool(tool: com.example.saif.domain.model.ToolCall, messageId: String, reason: String?) {
-        if (_activeAgentIsCustomApi.value) customApiEngine.rejectTool(tool, reason)
-        else mainChatBackend.rejectTerminalTool(tool, messageId, reason)
-    }
-    fun approveAllMainTools(items: List<com.example.saif.ui.chat.PendingToolApproval>) {
-        if (_activeAgentIsCustomApi.value) customApiEngine.approveAllPending(items)
-        else mainChatBackend.approveAllPendingTools(items)
-    }
-    fun rejectAllMainTools(items: List<com.example.saif.ui.chat.PendingToolApproval>) {
-        if (_activeAgentIsCustomApi.value) customApiEngine.rejectAllPending(items)
-        else mainChatBackend.rejectAllPendingTools(items)
-    }
-    fun submitMainChoices(tool: com.example.saif.domain.model.ToolCall, id: String, responses: List<com.example.saif.data.remote.dto.AskQuestionResponseItemDto>, summary: String) = mainChatBackend.submitUserChoices(tool, id, responses, summary)
-    fun skipMainChoices(tool: com.example.saif.domain.model.ToolCall, id: String, responses: List<com.example.saif.data.remote.dto.AskQuestionResponseItemDto>) = mainChatBackend.skipUserChoices(tool, id, responses)
-    fun cancelMainChoices(tool: com.example.saif.domain.model.ToolCall, id: String) = mainChatBackend.cancelUserChoices(tool, id)
-
+    val mainAgentApprovals get() = customApiEngine.pendingApprovals
+    fun terminateMainTool(tool: com.example.saif.domain.model.ToolCall, id: String) = customApiEngine.terminateRunningTool(tool)
+    fun approveMainTool(tool: com.example.saif.domain.model.ToolCall, messageId: String, scope: String?) = customApiEngine.approveTool(tool, scope)
+    fun rejectMainTool(tool: com.example.saif.domain.model.ToolCall, messageId: String, reason: String?) = customApiEngine.rejectTool(tool, reason)
+    fun approveAllMainTools(items: List<com.example.saif.ui.chat.PendingToolApproval>) = customApiEngine.approveAllPending(items)
+    fun rejectAllMainTools(items: List<com.example.saif.ui.chat.PendingToolApproval>) = customApiEngine.rejectAllPending(items)
 
     val allSessions: StateFlow<List<ChatSessionEntity>> = repository.allSessions
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -264,13 +127,17 @@ class ChatViewModel(
 
     
     fun processAudioToText(context: android.content.Context, file: File) {
-        engine.agyBackend.transcribeAudioFile(file, onDone = { text ->
-            _input.value = listOf(_input.value, text).filter { it.isNotBlank() }.joinToString(" ")
-            file.delete()
-        }, onError = { message ->
-            android.widget.Toast.makeText(context, "Antigravity transcription: $message", android.widget.Toast.LENGTH_LONG).show()
-            file.delete()
-        })
+        viewModelScope.launch {
+            try {
+                val bytes = withContext(Dispatchers.IO) { file.readBytes() }
+                val result = com.example.stt.SttRouter.transcribe(bytes, context = context)
+                check(result.isSuccess) { result.rejectedReason ?: "Transcription failed" }
+                _input.value = listOf(_input.value, result.text).filter { it.isNotBlank() }.joinToString(" ")
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled
+            } catch (error: Exception) {
+                android.widget.Toast.makeText(context, error.message, android.widget.Toast.LENGTH_LONG).show()
+            } finally { file.delete() }
+        }
     }
 
     fun addAttachments(uris: List<Uri>) {
@@ -323,6 +190,8 @@ class ChatViewModel(
                     _selectedAttachments.value = emptyList()
                     _currentStreamingContent.value = ""
                     _isGenerating.value = false
+                    customApiEngine.stopActiveExecution()
+                    customApiStore.clear()
                 }
         }
     }
@@ -357,23 +226,10 @@ class ChatViewModel(
             val session = repository.getSessionById(sessionId)
             if (session != null && _activeSessionId.value == sessionId) _currentMode.value = session.mode
             if (customApiEngine.loadSessionMessages(sessionId)) {
-                _activeAgentIsCustomApi.value = true
                 if (_activeSessionId.value == sessionId) _mainAgentSessionId.value = sessionId
                 return@launch
             }
-            val cascade = application.getSharedPreferences("saif_main_cascades", android.content.Context.MODE_PRIVATE).getString(sessionId, null)
-            if (!cascade.isNullOrBlank() && engine.systemConnectionState.value.isReady) {
-                try {
-                    _activeAgentIsCustomApi.value = false
-                    if (mainChatBackend.currentConversation.value?.id != cascade) mainChatBackend.selectConversation(cascade)
-                    kotlinx.coroutines.withTimeout(30_000L) {
-                        while (mainChatBackend.currentConversation.value?.id != cascade || mainChatBackend.isLoadingConversation.value) kotlinx.coroutines.delay(100)
-                    }
-                    if (_activeSessionId.value == sessionId && mainChatBackend.conversationError.value == null) _mainAgentSessionId.value = sessionId
-                } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                    if (cancelled !is kotlinx.coroutines.TimeoutCancellationException) throw cancelled
-                }
-            }
+            customApiStore.clear()
         }
     }
 
@@ -519,24 +375,8 @@ class ChatViewModel(
         val activeCustomProfile = customApiState.activeProfile?.takeIf { customApiState.isActiveAndReady }
 
         if (activeCustomProfile == null) {
-            // Never discard the draft when the shared hub needs setup or sign-in.
-            val connection = engine.systemConnectionState.value
-            if (!connection.isReady) {
-                val message = when (connection.status) {
-                    com.example.saif.data.remote.SystemStatus.UNAUTHENTICATED -> "Antigravity isn't connected. Use Sign In or enable Antigravity Custom API in Settings."
-                    com.example.saif.data.remote.SystemStatus.ERROR -> "SAIF AI server error: tap the status dot to reconnect."
-                    else -> "SAIF AI server isn't ready. Tap the status dot in the header to reconnect."
-                }
-                android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
-                return null
-            }
-            val accountIssue = com.example.saif.data.remote.GoogleAccountBinding.denialReason(
-                com.example.data.local.AuthManager.currentUser.value, engine.agyAuthInfo.value
-            )
-            if (accountIssue != null) {
-                android.widget.Toast.makeText(context, accountIssue, android.widget.Toast.LENGTH_LONG).show()
-                return null
-            }
+            android.widget.Toast.makeText(context, "Configure and enable a Custom API provider in Settings first.", android.widget.Toast.LENGTH_LONG).show()
+            return null
         }
         _input.value = ""
         _selectedAttachments.value = emptyList()
@@ -580,8 +420,7 @@ class ChatViewModel(
                 val sessionPrefs = application.getSharedPreferences("saif_main_cascades", android.content.Context.MODE_PRIVATE)
 
                 val result: String = if (activeCustomProfile != null) {
-                    _activeAgentIsCustomApi.value = true
-                    _mainAgentSessionId.value = sessionId
+                        _mainAgentSessionId.value = sessionId
                     val systemText = _customSystemPrompt.value.trim()
                     val expandedPrompt = buildString {
                         if (systemText.isNotBlank()) append("Instructions: ").append(systemText).append("\n\n")
@@ -613,92 +452,7 @@ class ChatViewModel(
                         }
                     )
                 } else {
-                    _activeAgentIsCustomApi.value = false
-                    val model = engine.agyBackend.selectedModelId.value.ifBlank {
-                        engine.agyBackend.availableModels.value.firstOrNull()?.id.orEmpty()
-                    }
-                    check(model.isNotBlank()) { "No Antigravity models available. Check sign-in and try again." }
-                    mainChatBackend.selectModel(model)
-                    val savedCascade = sessionPrefs.getString(sessionId, null)
-                    val newCascade = savedCascade.isNullOrBlank()
-                    if (newCascade) {
-                        mainChatBackend.startNewChat()
-                        check(mainChatBackend.currentConversation.value != null) { "Unable to create Antigravity conversation." }
-                    } else {
-                        if (mainChatBackend.currentConversation.value?.id != savedCascade) mainChatBackend.selectConversation(savedCascade!!)
-                        kotlinx.coroutines.withTimeout(30_000L) {
-                            while (mainChatBackend.currentConversation.value?.id != savedCascade || mainChatBackend.isLoadingConversation.value) {
-                                kotlinx.coroutines.delay(100)
-                            }
-                        }
-                        mainChatBackend.conversationError.value?.let { error(it) }
-                    }
-
-                    mainChatStore.attachments.value = stagedBundle.inlineAttachments
-
-                    // A stable hub cascade is linked to each SAIF history entry. Older local-only chats get context once.
-                    val historyText = (if (newCascade) history else emptyList()).joinToString("\n\n") {
-                        (if (it.role == "user") "User: " else "Assistant: ") + it.content.take(6000)
-                    }
-                    val systemText = _customSystemPrompt.value.trim()
-                    val request = buildString {
-                        if (systemText.isNotBlank()) append("Instructions: ").append(systemText).append("\n\n")
-                        if (specialistDirective.isNotBlank()) append(specialistDirective).append("\n\n")
-                        append(DIRECT_ANSWER_RULE).append("\n\n")
-                        val memory = com.example.util.SaifMemoryCore.promptBlock(com.example.util.SaifMemoryCore.Features.CHAT)
-                        if (memory.isNotBlank()) append(memory).append("\n\n")
-                        if (historyText.isNotBlank()) append("Previous conversation (for context):\n").append(historyText).append("\n\n")
-                        if (stagedBundle.promptContextBlock.isNotBlank()) {
-                            append(stagedBundle.promptContextBlock).append("\n\n")
-                        }
-                        append("Current user message:\n").append(com.example.saif.data.remote.PromptExpansion.expand(effectivePrompt))
-                    }
-                    mainChatBackend.sendMessage(request)
-                    _mainAgentSessionId.value = sessionId
-                    val hubResult = kotlinx.coroutines.withTimeout(1_800_000L) {
-                        var stableSince = 0L
-                        var lastFingerprint = 0
-                        while (true) {
-                            kotlinx.coroutines.delay(200)
-                            val msgs = mainChatBackend.messages.value
-                            val lastUserIndex = msgs.indexOfLast { it.role == com.example.saif.domain.model.MessageRole.USER }
-                            val assistant = msgs.drop(lastUserIndex + 1).lastOrNull { it.role == com.example.saif.domain.model.MessageRole.ASSISTANT }
-                            val text = assistant?.content.orEmpty()
-                            if (text.isNotBlank()) {
-                                require(com.example.cloud.CloudRequestFilter.shouldDisplayInline(text.toByteArray(Charsets.UTF_8).size)) {
-                                    "Reply exceeds 3 MB. Ask for a smaller text response or start a cloud job."
-                                }
-                                _currentStreamingContent.value = text
-                            }
-                            val turn = msgs.drop(lastUserIndex + 1)
-                            val pending = turn.flatMap { it.toolCalls }.any { it.status == "PENDING_APPROVAL" || it.status == "RUNNING" }
-                            val question = com.example.saif.ui.agents.findPendingQuestion(com.example.saif.domain.model.AgentKind.AGY, turn)
-                            val cascadeId = mainChatBackend.currentConversation.value?.id
-                            val summaries = engine.agyBackend.conversations.value
-                            val relatedIds = mutableSetOf<String>()
-                            cascadeId?.let { relatedIds.add(it) }
-                            repeat(4) { summaries.filter { it.parentConversationId != null && it.parentConversationId in relatedIds }.forEach { relatedIds.add(it.id) } }
-                            val busy = summaries.any { it.id in relatedIds && (it.isRunning || it.notFullyIdle) }
-                            if (newCascade && turn.any { it.content.isNotBlank() || it.toolCalls.isNotEmpty() }) {
-                                cascadeId?.let { sessionPrefs.edit().putString(sessionId, it).apply() }
-                            }
-                            if (!pending && question == null && !busy && assistant != null && text.isNotBlank() && !assistant.isStreaming && !mainChatBackend.isStreaming.value) {
-                                val fingerprint = turn.hashCode()
-                                if (fingerprint != lastFingerprint || stableSince == 0L) { lastFingerprint = fingerprint; stableSince = System.currentTimeMillis() }
-                                // Allow the hub time to report delegated subagents before treating a reply as final.
-                                // A plain chat answer (no tools, no subagents) is final almost at once, so "hello" is not slow.
-                                val usedTools = turn.any { it.toolCalls.isNotEmpty() }
-                                val settleMs = if (usedTools || relatedIds.size > 1) 10_000L else 1_500L
-                                if (System.currentTimeMillis() - stableSince >= settleMs) return@withTimeout text
-                            } else { stableSince = 0L; lastFingerprint = 0 }
-                            mainChatBackend.conversationError.value?.let { error(it) }
-                        }
-                        @Suppress("UNREACHABLE_CODE") ""
-                    }
-                    if (newCascade) {
-                        mainChatBackend.currentConversation.value?.id?.let { sessionPrefs.edit().putString(sessionId, it).apply() }
-                    }
-                    hubResult
+                    error("Custom API profile is no longer available")
                 }
                 val finalDeliveredResult = if (result.contains("<saif-apk", ignoreCase = true)) {
                     val sessionTitle = allSessions.value.firstOrNull { it.id == sessionId }?.title
@@ -727,7 +481,7 @@ class ChatViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 if (cancelled is kotlinx.coroutines.TimeoutCancellationException) {
                     customApiEngine.stopActiveExecution()
-                    mainChatBackend.stopStreaming()
+                    customApiEngine.stopActiveExecution()
                     sessionId?.let { repository.insertMessage(ChatMessageEntity(sessionId = it, role = "model", content = "Antigravity response timed out. Please check the server and try again.")) }
                 } else throw cancelled
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
@@ -752,12 +506,7 @@ class ChatViewModel(
     suspend fun sendLiveCodingTask(context: android.content.Context, spokenRequest: String): String {
         if (_isGenerating.value) return "Antigravity is still working on the last request. Check the chat before sending another edit."
         val customReady = com.example.agyext.AntigravityCustomApiManager.getState(context).isActiveAndReady
-        if (!customReady) {
-            if (!engine.systemConnectionState.value.isReady) return "Antigravity is not signed in or the server is still starting. Reconnect in SAIF AI first."
-            com.example.saif.data.remote.GoogleAccountBinding.denialReason(
-                com.example.data.local.AuthManager.currentUser.value, engine.agyAuthInfo.value
-            )?.let { return it }
-        }
+        if (!customReady) return "Enable a configured Custom API provider in Settings first."
         val selectedSession = kotlinx.coroutines.CompletableDeferred<String>()
         val job = sendMessage(context, spokenRequest, onSessionSelected = { selectedSession.complete(it) })
             ?: return "Could not send your coding request. Please check the chat connection."
@@ -779,7 +528,7 @@ class ChatViewModel(
 
     fun stopGeneration() {
         customApiEngine.stopActiveExecution()
-        mainChatBackend.stopStreaming()
+        customApiEngine.stopActiveExecution()
         activeGenerationJob?.cancel()
         val partial = _currentStreamingContent.value
         val sessionId = _activeSessionId.value
