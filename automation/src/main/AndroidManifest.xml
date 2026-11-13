@@ -2,8 +2,9 @@
 <!--
   SAIF AI AUTOMATION (library module of SAIF AI)
 
-  100% owned and credited to SAIF AI. No external credits, no external license requirements.
-  Project: https://github.com/shahudgg/saif-ai-director-
+  Based on the JARVIS AI Android assistant by Tech GPTx (Rehaan).
+  Copyright (c) 2026 Tech GPTx. Used under the TAMCL v1.0 licence (automation/LICENSE).
+  Original project: https://github.com/techgptx/Playlist
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">

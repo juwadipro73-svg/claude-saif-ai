@@ -48,7 +48,9 @@ The same notices are inside the app: **Settings > Open-source licences & credits
 - Used for: the live voice and phone-automation engine (purple microphone), the Gradle module `automation/`
   (Java package `com.jarvis.assistant`).
 - Changes: turned into a library module, connected to SAIF AI's settings and theme, renamed in the interface to
-  "SAIF AI Automation", Room moved from kapt to KSP, stand-alone licence checks switched off.
+  "SAIF AI Automation" (the assistant and its personas are presented as SAIF AI), Room moved from kapt to KSP,
+  stand-alone licence checks switched off. The author's credit is kept in the module's code, manifest and
+  screens.
 - TAMCL v1.0 requires that this credit is **not removed** from the code, the manifests, the interface or the
   documentation, and that **videos or posts that show or use this code credit Tech GPTx** (spoken credit, a credit
   in the first lines of the description with the link above, and an on-screen credit). See section 7.
@@ -207,10 +209,11 @@ listed as their authors publish them; `modernc.org/sqlite` was checked.
    its licence and every credit. To be fully safe, get a short written permission from Tech GPTx to distribute
    their module together with this GPL app. Until then, keeping every credit above and following section 7 is the
    minimum.
-2. **Which builds to share.** Share build #9 or newer. Builds #1 to #3 were made from an upload in which the
-   Tech GPTx credit had been removed: do not share them. Builds #4 and #5 carry the credit. Builds #6 to #8 were
-   made without the voice automation module (no live voice); the module, its licence and its credits are back
-   from build #9 on.
+2. **Which builds to share.** Share build #10 or newer. Builds #1 to #3 were made from an upload in which the
+   Tech GPTx credit had been removed: do not share them. Builds #6 to #8 were made without the voice automation
+   module (no live voice). Builds #4, #5 and #9 carry the credit, but a few files and screens inside the module
+   still named SAIF AI in place of Tech GPTx (the module's manifest, its security header, the creator links and
+   two screen footers); that is corrected from build #10 on.
 3. **Google's closed libraries and the GPL.** The sign-in and the app-protection checks use Google libraries
    that are not open source (listed at the end of section 3). The GPL has no exception for such libraries, and
    AntiGem itself does not use them. Many GPL apps are published this way, but strictly it is not covered. To be

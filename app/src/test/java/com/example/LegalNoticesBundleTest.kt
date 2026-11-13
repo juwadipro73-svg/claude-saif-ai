@@ -88,4 +88,32 @@ class LegalNoticesBundleTest {
         assertTrue(SaifLegalNotices.PAGES.any { it.second == "licenses/TAMCL-1.0.txt" })
         assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("TAMCL v1.0"))
     }
+
+    @Test fun theVoiceModuleNamesItsAuthorWhereTheOriginalDid() {
+        // An earlier edit had put "SAIF AI" in place of the author in more files of the module: the security
+        // header, the manifest, the creator links and two screen footers. Those credits are back and must stay.
+        val module = "automation/src/main"
+        val security = file("$module/java/com/jarvis/assistant/security/SecurityManager.kt").readText()
+        assertTrue(security.contains("Developer       : Tech GPTx"))
+        assertTrue(security.contains("https://github.com/techgptx/Playlist"))
+        assertTrue(file("$module/AndroidManifest.xml").readText().contains("JARVIS AI Android assistant by Tech GPTx"))
+        assertTrue(file("$module/res/layout/activity_hands_free.xml").readText().contains("@techgptx.ai"))
+        listOf("activity_hands_free.xml", "activity_privacy_shield.xml").forEach { layout ->
+            assertTrue(layout, file("$module/res/layout/$layout").readText().contains("Built on JARVIS by Tech GPTx"))
+        }
+        listOf("HandsFreeActivity.kt", "PrivacyShieldActivity.kt", "SettingsFragment.kt").forEach { screen ->
+            val code = file("$module/java/com/jarvis/assistant/ui/settings/$screen").readText()
+            assertTrue(screen, code.contains("https://www.instagram.com/techgptx.ai"))
+        }
+
+        // No file of the module may claim it for SAIF AI alone again.
+        val falseClaims = listOf("100% owned and credited to SAIF AI", "all rights with SAIF AI", "No external credits")
+        val moduleFiles = file("automation/src").walkTopDown()
+            .filter { it.isFile && it.extension in setOf("kt", "xml", "html") }.toList() +
+            listOf(file("automation/README.md"), file("automation/build.gradle.kts"))
+        val wrong = moduleFiles
+            .filter { source -> val text = source.readText(); falseClaims.any { claim -> text.contains(claim) } }
+            .map { it.path }
+        assertEquals("files that claim the module for SAIF AI alone", emptyList<String>(), wrong)
+    }
 }

@@ -278,8 +278,10 @@ assistant by Tech GPTx, Termux, PRoot and more). An earlier round removed the Te
 licence and had to be undone. Rules for every agent and every change:
 
 - Do not delete or reword away any name, copyright line or licence in `LICENSE`, `THIRD_PARTY_NOTICES.md`,
-  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt` or the
-  settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
+  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt`,
+  `automation/.../security/SecurityManager.kt`, the module's `AndroidManifest.xml` comment, the creator links
+  (Tech GPTx's Instagram and YouTube) or the screen footers. Do not claim that any third-party code is
+  "100% owned" by SAIF AI.
 - Do not change the project to a proprietary or "all rights reserved" licence. It contains GPL code.
 - When you add a library or copy code, add it to `THIRD_PARTY_NOTICES.md` with its licence, then copy the file to
   `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
@@ -297,7 +299,8 @@ Android assistant by Tech GPTx under TAMCL v1.0. The owner wants the app to keep
 button, orb, screen share, on-device speech fallback) and wants its licence and credits kept.
 
 - Builds #6 to #8 were made without the module because a request of the owner was misread as "remove the code".
-  Build #9 restored the module, `licenses/TAMCL-1.0.txt` and every credit. Do not remove them again.
+  Build #9 restored the module, `licenses/TAMCL-1.0.txt` and every credit. Build #10 put the author's name back
+  in the places inside the module where an earlier edit had written "SAIF AI" instead. Do not remove them again.
 - If an instruction about this module, its licence or its credits is unclear, ask the owner before deleting
   anything. Removing a feature is never the way to settle a credit or licence question.
 - The mismatch between the GPL and TAMCL v1.0 is described in section 8 of `THIRD_PARTY_NOTICES.md`. Keeping the
