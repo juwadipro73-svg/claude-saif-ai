@@ -21,9 +21,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v3
-      - name: Install Android SDK
-        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      # Ubuntu hosted runners already include the Android SDK and accepted licenses.
+      - name: Check preinstalled Android SDK
+        run: ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
       - name: Check runner Gradle
         run: gradle --version
       - name: Build installable debug APK (tests not requested)
