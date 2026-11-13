@@ -1,5 +1,60 @@
 # Build status (honest)
 
+## Successful native build — 2026-11-13
+
+Branch: `arena/9a04a45b-claude-saif-ai`. APK source commit: `eae283b021b1ac082d4f9617a86a59980d5ffa39`.
+
+GitHub Actions run #21 (`:app:assembleStandardDebug`) **succeeded**:
+https://github.com/juwadipro73-svg/claude-saif-ai/actions/runs/43434716994
+
+**Direct APK download (debug preview, GitHub pre-release):**
+https://github.com/juwadipro73-svg/claude-saif-ai/releases/download/saif-ai-native-b21/SAIF-AI-native-debug-b21.apk
+
+- File: `SAIF-AI-native-debug-b21.apk`, 48,869,910 bytes.
+- SHA-256: `8ae24d7892416790e3d78f91399a9575f262eae8c8cf5c38774b5ed3fa397843`
+- `apksigner verify` passed in CI before publishing. Signed with the repository's fixed debug key, so it
+  can update earlier debug builds signed with the same key. This is not a production signing identity.
+- Version: `1.0.21-b21`, versionCode 1021. Package `com.saifai.app`.
+- Release page (also offers GitHub's exact source ZIP for this tag):
+  https://github.com/juwadipro73-svg/claude-saif-ai/releases/tag/saif-ai-native-b21
+
+Kotlin compiler diagnostics across builds: 604 → 469 → 57 → **0**.
+
+What changed to reach a green build:
+- Main chat and in-app helper requests now go through the native Custom API engine (user-configured
+  provider profile). The removed third-party hub engine, generation polling, hub sign-in and fake quotas
+  are no longer used; quotas are shown as unavailable rather than invented.
+- Home feed, slash-command overlay, provider settings/configuration dialogs and tool approve/deny/stop/retry
+  UI were rebuilt on native state.
+- Skills: real per-account GitHub import. An import succeeds only after the actual `SKILL.md` (repository
+  root) or `/blob/<ref>/<path>` file is fetched over HTTPS from the GitHub contents API (2 MB response /
+  1 MB document limits). Skills are stored per signed-in account and update the UI reactively.
+- Voice "normal" mode now starts the actual LiveVoiceManager instead of speaking a canned readiness message.
+- Remaining compile errors fixed: malformed string literals, missing commas, Java named-argument calls,
+  icon/receiver mismatches, Context/Application mismatches, nullable state, exception variable names,
+  and stale data contracts. No compile error was silenced by adding fake success stubs.
+- CI publishes a signature-verified APK release on every successful build of this branch, and publishes full
+  compiler diagnostics as check runs when a build fails.
+
+Not verified / remaining limitations:
+- No unit, instrumentation, emulator or device tests were run. Launch, Room migrations from older installs,
+  notifications, foreground-task survival and provider compatibility still need testing on a phone.
+- This is a debug APK. R8 shrinking/obfuscation applies only to release builds, which require a private
+  signing key (`SAIF_RELEASE_*` environment variables). R8 does not make an app impossible to reverse engineer.
+- Configure a Custom API provider in AI Settings before chatting; hub accounts/quotas are not available.
+- The local bridge only prepares its workspace. A Linux CLI toolchain installer is not implemented.
+- Helper image requests are rejected with a clear message; main chat handles attachments directly.
+- A separate universal backend fallback outside the main chat still returns fixed responses and is not
+  used by main chat.
+- Unit tests under `app/src/test` still reference removed classes; this build does not compile them.
+- Still relevant from earlier audits: `assets/glibc-min-arm64.tar` (LGPL) needs its notice/source offer;
+  `saif-debug.jks` and `google-services.json` are in this public repository; the `.proto` files describe
+  a third-party language-server API and should be reviewed before distribution.
+
+---
+
+## Historical notes (superseded by the successful build above)
+
 ## Active branch compilation follow-up — 2026-11-13
 
 Branch: `arena/a95718fa-claude-saif-ai`. Latest compiled source: `76b97c8`.

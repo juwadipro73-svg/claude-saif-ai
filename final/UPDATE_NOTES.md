@@ -1,7 +1,11 @@
 # SAIF AI — UI and reliability update
 
 ## Delivery status
-Source update only. A subsequent GitHub Actions Android debug build was attempted and failed Kotlin compilation after the Room schema blocker was fixed. No tests, emulator run, or device validation was performed. **There is no generated APK or verified APK download link.** See BUILD_STATUS.md for the actual run and remaining compiler blockers. See BUILD_STATUS.md for pre-existing missing classes and backend placeholders; this update does not resolve those project-wide blockers.
+GitHub Actions Android debug build **succeeded** for commit `eae283b` (run #21). Direct APK download:
+https://github.com/juwadipro73-svg/claude-saif-ai/releases/download/saif-ai-native-b21/SAIF-AI-native-debug-b21.apk
+(48,869,910 bytes, SHA-256 `8ae24d7892416790e3d78f91399a9575f262eae8c8cf5c38774b5ed3fa397843`,
+signature verified in CI). No unit tests, emulator run or device validation were performed. See
+BUILD_STATUS.md for details and remaining limitations.
 
 ## Implemented
 - Native Compose Architect / Builder / Reviewer welcome cards with entrance animation and horizontal scrolling. Custom API users see them without needing hub authentication.
@@ -19,12 +23,12 @@ Source update only. A subsequent GitHub Actions Android debug build was attempte
 ## Explicitly not completed / limitations
 - Android launcher icons cannot smoothly morph. No launcher alias rotation or periodic launcher-icon worker was added. The 2-hour color animation applies only inside the app.
 - Task execution is still owned by the existing ViewModel. Foreground protection helps minimization, but force-stop, OS process death, activity destruction and OEM task removal can terminate it. Durable service-owned jobs/checkpoint recovery are not implemented. Wake protection expires after two hours. Existing BuildService-based non-chat tasks are not integrated with the new completion tracker.
-- Main backend adapters contain pre-existing stubs. Custom API tool execution and terminal APK compilation cannot be certified working until these are restored and the app is built on a configured machine.
-- No exact case-insensitive `texhgptx` reference was found. No undocumented third-party code ownership claim or bulk backend deletion was made. Native replacement of unidentified legacy subsystems is not complete. APK size/performance improvements have not been measured.
+- The app now compiles. Main chat uses the native Custom API engine; tool execution and in-app terminal compilation still need device validation. A separate universal backend fallback outside main chat still returns fixed responses.
+- No `texhgptx` reference exists in the source. The third-party hub engine path was removed from main chat and replaced with native Custom API state, feed, approvals and skills. Legacy `.proto` definitions and some unused modules remain. The debug APK is 48.9 MB; size/performance versus earlier builds was not benchmarked.
 - Credits reflect the existing THIRD_PARTY_NOTICES.md inventory, including VERIFY entries. GPL/LGPL attribution, corresponding-source and relinking obligations still need a release audit. Compact presentation does not replace those legal obligations.
-- No repository-wide fix of existing syntax/type errors was attempted. R8 reflection compatibility, concurrent task lifecycle, Android notification policy, accessibility and reduced-motion behavior require user testing.
+- All Kotlin compile errors in the app build were fixed (unit tests under app/src/test are not compiled and still reference removed classes). R8 reflection compatibility in release builds, concurrent task lifecycle, Android notification policy, accessibility and reduced-motion behavior require user testing.
 
-## Building after existing blockers are fixed
+## Building locally
 Use Android Studio with SDK 36, JDK/toolchain 21 and internet access to Google Maven, Maven Central and Gradle distributions. The current project defines only the `standard` flavor.
 
 ```sh
