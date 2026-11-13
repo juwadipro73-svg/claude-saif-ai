@@ -74,7 +74,7 @@ object GoalVerifier {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "GoalVerifier exception: ${e.message}")
+            Log.w(TAG, "GoalVerifier exception: ${err.message}")
         }
 
         // Conservative fallback: allow completion if screen package changed and elements were interacted with

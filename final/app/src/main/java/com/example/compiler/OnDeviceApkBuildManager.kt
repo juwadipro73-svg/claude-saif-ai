@@ -237,7 +237,7 @@ object OnDeviceApkBuildManager {
 
             return@withContext compileAndPublishProject(context, buildId, project)
         } catch (err: Exception) {
-            val errMsg = e.localizedMessage ?: e.message ?: "APK generation failed"
+            val errMsg = err.localizedMessage ?: err.message ?: "APK generation failed"
             val failed = LocalApkBuildState(
                 id = buildId,
                 kind = "APK",
@@ -248,7 +248,7 @@ object OnDeviceApkBuildManager {
                 progress = 0f
             )
             _current.value = failed
-            throw e
+            throw err
         }
     }
 

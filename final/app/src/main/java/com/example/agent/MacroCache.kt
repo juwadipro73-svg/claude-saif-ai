@@ -24,7 +24,7 @@ object MacroCache {
                 if (v is String) memoryCache[k] = v
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Error initializing MacroCache: ${e.message}")
+            Log.w(TAG, "Error initializing MacroCache: ${err.message}")
         }
     }
 

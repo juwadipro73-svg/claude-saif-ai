@@ -255,8 +255,8 @@ object ActionExecutor {
                 }
             }
         } catch (err: Exception) {
-            Log.e(TAG, "Exception executing action '$name': ${e.message}", e)
-            ActionResult(false, "Action '$name' failed: ${e.message}")
+            Log.err(TAG, "Exception executing action '$name': ${err.message}", err)
+            ActionResult(false, "Action '$name' failed: ${err.message}")
         }
     }
 }

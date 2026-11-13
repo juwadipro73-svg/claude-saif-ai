@@ -522,9 +522,9 @@ fun FileManagerScreen(
                                     reloadFiles()
                                 }
                             } catch (err: Exception) {
-                                e.printStackTrace()
+                                err.printStackTrace()
                                 withContext(context = Dispatchers.Main) {
-                                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Error: ${err.message}", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }

@@ -525,7 +525,7 @@ fun StudioExportDialog(
                                     cancelled = true
                                     throw e
                                 } catch (err: Exception) {
-                                    exportError = e.localizedMessage ?: "Video export failed"
+                                    exportError = err.localizedMessage ?: "Video export failed"
                                 } finally {
                                     isExporting = false
                                 }

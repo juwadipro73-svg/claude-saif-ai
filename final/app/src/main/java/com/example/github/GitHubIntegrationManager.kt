@@ -191,9 +191,9 @@ object GitHubIntegrationManager {
                 )
                 Result.success(profile)
             } catch (err: Exception) {
-                val msg = e.localizedMessage ?: "Failed to connect to GitHub. Check your token and internet."
+                val msg = err.localizedMessage ?: "Failed to connect to GitHub. Check your token and internet."
                 _state.value = _state.value.copy(isBusy = false, errorMessage = msg, statusMessage = null)
-                Result.failure(e)
+                Result.failure(err)
             }
         }
 
@@ -211,8 +211,8 @@ object GitHubIntegrationManager {
                 )
                 Result.success(repos)
             } catch (err: Exception) {
-                _state.value = _state.value.copy(isBusy = false, errorMessage = e.localizedMessage ?: "Could not load repositories")
-                Result.failure(e)
+                _state.value = _state.value.copy(isBusy = false, errorMessage = err.localizedMessage ?: "Could not load repositories")
+                Result.failure(err)
             }
         }
 
@@ -258,8 +258,8 @@ object GitHubIntegrationManager {
             )
             Result.success(created)
         } catch (err: Exception) {
-            _state.value = _state.value.copy(isBusy = false, errorMessage = e.localizedMessage ?: "Repository creation failed")
-            Result.failure(e)
+            _state.value = _state.value.copy(isBusy = false, errorMessage = err.localizedMessage ?: "Repository creation failed")
+            Result.failure(err)
         }
     }
 
@@ -352,9 +352,9 @@ object GitHubIntegrationManager {
         } catch (err: Exception) {
             _state.value = _state.value.copy(
                 isBusy = false,
-                errorMessage = e.localizedMessage ?: "Failed to clone ${repo.fullName}"
+                errorMessage = err.localizedMessage ?: "Failed to clone ${repo.fullName}"
             )
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 
@@ -392,7 +392,7 @@ object GitHubIntegrationManager {
                     )
                 }
             } catch (err: Exception) {
-                Result.failure(e)
+                Result.failure(err)
             }
         }
 
@@ -427,7 +427,7 @@ object GitHubIntegrationManager {
                 }
             }
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 

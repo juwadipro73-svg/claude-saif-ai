@@ -16,11 +16,15 @@ enum class AgentKind {
     CUSTOM
 }
 
+@kotlinx.serialization.Serializable
 data class TokenUsage
 (
     val promptTokens:
     Int = 0,
     val completionTokens: Int = 0,
+    val outputTokens: Int = 0,
+    val durationMs: Long = 0,
+    val model: String = "",
     val totalTokens: Int = 0
 )
 

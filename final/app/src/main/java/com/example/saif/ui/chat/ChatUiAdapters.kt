@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+typealias PendingToolApproval = com.example.saif.core.PendingToolApproval
+
 sealed class ChatFeedItem {
     data class User(val message: SaifChatMessage) : ChatFeedItem()
     data class AssistantBlock(val message: SaifChatMessage) : ChatFeedItem()

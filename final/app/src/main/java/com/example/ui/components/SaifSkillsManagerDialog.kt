@@ -204,7 +204,7 @@ fun SaifSkillsManagerDialog(
                                         githubUrl = ""
                                         skillName = ""
                                     } catch (err: Exception) {
-                                        errorMsg = e.localizedMessage ?: "Failed to import GitHub skill"
+                                        errorMsg = err.localizedMessage ?: "Failed to import GitHub skill"
                                     } finally {
                                         isImporting = false
                                     }

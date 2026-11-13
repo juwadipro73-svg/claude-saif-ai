@@ -36,7 +36,7 @@ class AgentOrchestrator(private val activity: AgentActivity?) {
         } catch (e: CancellationException) {
             throw e
         } catch (err: Exception) {
-            Result.failure<T>(e)
+            Result.failure<T>(err)
         }
         if (r.isSuccess) {
             activity?.instant(ActivityKind.MODEL, "✅ ${role.name} agent done: $title")
@@ -51,7 +51,7 @@ class AgentOrchestrator(private val activity: AgentActivity?) {
         } catch (e: CancellationException) {
             throw e
         } catch (err: Exception) {
-            Result.failure<T>(e)
+            Result.failure<T>(err)
         }
         if (r.isSuccess) {
             activity?.instant(ActivityKind.MODEL, "✅ WATCHDOG retry worked — ${role.name} agent recovered: $title")

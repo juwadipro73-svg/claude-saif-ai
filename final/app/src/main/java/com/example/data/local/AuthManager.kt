@@ -77,7 +77,7 @@ object AuthManager {
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 92, out)
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
         val path = file.absolutePath
         if (::prefs.isInitialized) {
@@ -183,7 +183,7 @@ object AuthManager {
                     }
                 }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
     }
 
@@ -350,7 +350,7 @@ object AuthManager {
                             .build()
                         fbUser.updateProfile(profileUpdates).awaitResult()
                     } catch (err: Exception) {
-                        e.printStackTrace()
+                        err.printStackTrace()
                     }
 
                     // Save Profile to Cloud Firestore (both "users" and "Users")
@@ -374,7 +374,7 @@ object AuthManager {
                             firestore.collection("Users").document(fbUser.uid).set(userDoc, SetOptions.merge()).awaitResult()
                         } catch (ignored: Exception) {}
                     } catch (err: Exception) {
-                        e.printStackTrace()
+                        err.printStackTrace()
                     }
 
                     // Do not mirror Firebase passwords into offline Room rows. A reset or ban
@@ -392,7 +392,7 @@ object AuthManager {
                     return@withContext Result.success(user)
                 }
             } catch (err: Exception) {
-                val msg = e.message ?: ""
+                val msg = err.message ?: ""
                 if (msg.contains("email address is already in use", ignoreCase = true) ||
                     msg.contains("email-already-in-use", ignoreCase = true)) {
                     return@withContext Result.failure(IllegalStateException("This email is already registered in Firebase. Please switch to Sign In or tap 'Forgot Password'."))
@@ -425,10 +425,10 @@ object AuthManager {
                 role = "user", isFirebaseUser = false)
             Result.success(user)
         } catch (err: Exception) {
-            if (e.message?.contains("UNIQUE", ignoreCase = true) == true || e.message?.contains("exists", ignoreCase = true) == true) {
+            if (err.message?.contains("UNIQUE", ignoreCase = true) == true || err.message?.contains("exists", ignoreCase = true) == true) {
                 Result.failure(IllegalStateException("An account with this email already exists. Please switch to Sign In."))
             } else {
-                Result.failure(e)
+                Result.failure(err)
             }
         }
     }
@@ -477,7 +477,7 @@ object AuthManager {
                             resolvedUsage = (cloudData["apiUsageCount"] as? Number)?.toInt() ?: 0
                         }
                     } catch (err: Exception) {
-                        e.printStackTrace()
+                        err.printStackTrace()
                     }
 
                     if (resolvedName.isBlank()) {
@@ -499,8 +499,8 @@ object AuthManager {
                     return@withContext Result.success(user)
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Firebase signIn attempt failed: ${e.message}. Checking local fallback...")
-                firebaseExceptionMsg = e.message ?: ""
+                Log.w(TAG, "Firebase signIn attempt failed: ${err.message}. Checking local fallback...")
+                firebaseExceptionMsg = err.message ?: ""
             }
         }
 
@@ -576,9 +576,9 @@ object AuthManager {
                 return@withContext Result.success("If $cleanEmail has a Firebase account, a reset link will arrive in the inbox. Offline-only accounts cannot be reset by email.")
             } catch (err: Exception) {
                 val msg = when {
-                    e.message?.contains("user-not-found", true) == true || e.message?.contains("no user", true) == true ->
+                    err.message?.contains("user-not-found", true) == true || err.message?.contains("no user", true) == true ->
                         "No account found with $cleanEmail. Please sign up."
-                    else -> e.message ?: "Failed to send reset email"
+                    else -> err.message ?: "Failed to send reset email"
                 }
                 return@withContext Result.failure(IllegalStateException(msg))
             }
@@ -660,7 +660,7 @@ object AuthManager {
             }
             Result.success(Unit)
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 
@@ -679,7 +679,7 @@ object AuthManager {
             try {
                 db.userAccountDao().updateUserName(current.email, trimmed)
             } catch (err: Exception) {
-                Log.w(TAG, "Error updating user name in Room: ${e.message}")
+                Log.w(TAG, "Error updating user name in Room: ${err.message}")
             }
             
             // Update Firebase Auth & Firestore if Firebase user
@@ -697,7 +697,7 @@ object AuthManager {
                         firestore.collection("users").document(fbUser.uid).set(updateMap, SetOptions.merge()).awaitResult()
                     }
                 } catch (err: Exception) {
-                    Log.w(TAG, "Error updating user name in Firebase: ${e.message}")
+                    Log.w(TAG, "Error updating user name in Firebase: ${err.message}")
                 }
             }
             
@@ -705,7 +705,7 @@ object AuthManager {
             if (_currentUser.value?.uid == current.uid) _currentUser.value = current.copy(name = trimmed)
             Result.success(Unit)
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 

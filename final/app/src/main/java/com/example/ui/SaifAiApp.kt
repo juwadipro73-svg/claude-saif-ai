@@ -554,7 +554,7 @@ fun SaifAiApp(
                                     tempCameraUri = uri
                                     cameraLauncher.launch(uri)
                                 } catch (err: Exception) {
-                                    android.widget.Toast.makeText(context, "Camera open karne me samasya: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Camera open karne me samasya: ${err.message}", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             } else {
                                 android.widget.Toast.makeText(context, "Camera permission is required to take photos", android.widget.Toast.LENGTH_SHORT).show()
@@ -703,7 +703,7 @@ fun SaifAiApp(
                                                         val message = viewModel.connectGoogleFlow(context)
                                                         android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
                                                     } catch (err: Exception) {
-                                                        android.widget.Toast.makeText(context, "Flow setup failed: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+                                                        android.widget.Toast.makeText(context, "Flow setup failed: ${err.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
                                                     } finally { flowSetupBusy = false }
                                                 }
                                             })
@@ -759,7 +759,7 @@ fun SaifAiApp(
                                         tempCameraUri = uri
                                         cameraLauncher.launch(uri)
                                     } catch (err: Exception) {
-                                        android.widget.Toast.makeText(context, "Camera open karne me samasya: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                                        android.widget.Toast.makeText(context, "Camera open karne me samasya: ${err.message}", android.widget.Toast.LENGTH_SHORT).show()
                                     }
                                 } else {
                                     cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)

@@ -61,7 +61,7 @@ internal fun HomeAgentFeed(
                         .addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(android.content.Intent.createChooser(intent, "Open ${file.name}"))
                 } catch (err: Exception) {
-                    android.widget.Toast.makeText(context, "Cannot open file: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+                    android.widget.Toast.makeText(context, "Cannot open file: ${err.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
                 }
             }
         })
@@ -71,7 +71,7 @@ internal fun HomeAgentFeed(
             override fun openUri(uri: String) {
                 if (uri.startsWith("file://", true) || uri.startsWith("/")) fileHandler.onOpenFile(uri)
                 else try { externalUris.openUri(uri) } catch (err: Exception) {
-                    android.widget.Toast.makeText(context, "Cannot open link: ${e.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, "Cannot open link: ${err.localizedMessage}", android.widget.Toast.LENGTH_SHORT).show()
                 }
             }
         }

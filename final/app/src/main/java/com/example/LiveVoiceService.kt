@@ -98,7 +98,7 @@ class LiveVoiceService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSt
                     windowManager.removeView(it)
                 }
             } catch (err: Exception) {
-                android.util.Log.e("LiveVoiceService", "Error removing overlay", e)
+                android.util.Log.err("LiveVoiceService", "Error removing overlay", err)
             }
         }
         composeView = null
@@ -146,7 +146,7 @@ class LiveVoiceService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSt
                         try {
                             windowManager.updateViewLayout(composeView, layoutParams)
                         } catch (err: Exception) {
-                            android.util.Log.e("LiveVoiceService", "Error updating layout", e)
+                            android.util.Log.err("LiveVoiceService", "Error updating layout", err)
                         }
                     }
                 )
@@ -156,7 +156,7 @@ class LiveVoiceService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSt
         try {
             windowManager.addView(composeView, layoutParams)
         } catch (err: Exception) {
-            android.util.Log.e("LiveVoiceService", "Failed to add overlay window", e)
+            android.util.Log.err("LiveVoiceService", "Failed to add overlay window", err)
             composeView = null
         }
     }
@@ -188,7 +188,7 @@ class LiveVoiceService : Service(), LifecycleOwner, ViewModelStoreOwner, SavedSt
                     windowManager.removeView(it)
                 }
             } catch (err: Exception) {
-                android.util.Log.e("LiveVoiceService", "Error removing view in onDestroy", e)
+                android.util.Log.err("LiveVoiceService", "Error removing view in onDestroy", err)
             }
         }
         composeView = null

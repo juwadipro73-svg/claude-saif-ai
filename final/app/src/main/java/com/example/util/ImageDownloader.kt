@@ -37,7 +37,7 @@ object ImageDownloader {
                 }
             } catch (err: Exception) {
                 withContext(context = Dispatchers.Main) {
-                    Toast.makeText(context, "Error saving image: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Error saving image: ${err.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -77,7 +77,7 @@ object ImageDownloader {
             }
         } catch (err: Exception) {
              withContext(context = Dispatchers.Main) {
-                Toast.makeText(context, "Failed to save: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Failed to save: ${err.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

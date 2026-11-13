@@ -176,7 +176,7 @@ fun LibraryManagerScreen(
                     editorViewModel.refreshTree(context)
                 }
             } catch (err: Exception) {
-                e.printStackTrace()
+                err.printStackTrace()
             }
         }
     }

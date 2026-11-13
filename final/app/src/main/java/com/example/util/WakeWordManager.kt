@@ -256,7 +256,7 @@ object WakeWordManager {
                 }
                 context.startActivity(intent)
             } catch (err: Exception) {
-                Log.e(TAG, "Error starting AssistantOverlayActivity: ${e.message}")
+                Log.err(TAG, "Error starting AssistantOverlayActivity: ${err.message}")
             }
         }
 
@@ -278,7 +278,7 @@ object WakeWordManager {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Vibration failed: ${e.message}")
+            Log.w(TAG, "Vibration failed: ${err.message}")
         }
     }
 

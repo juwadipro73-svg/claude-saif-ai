@@ -5,12 +5,14 @@ package com.example.saif.core
 import kotlinx.coroutines.flow.StateFlow
 import java.io.File
 import java.util.UUID
+import kotlinx.serialization.Serializable
 
 /**
  * 100% Original SAIF AI Core Models & Port Interfaces.
  * Written from docs/feature-spec.md under Apache-2.0 / SAIF AI License.
  */
 
+@Serializable
 enum class MessageRole
 {
     USER,
@@ -20,6 +22,7 @@ enum class MessageRole
     SUMMARY
 }
 
+@Serializable
 enum class ToolType
 {
     BASH,
@@ -34,10 +37,13 @@ enum class ToolType
     MCP,
     ASK_CHOICE,
     MATH,
-    SYSTEM_NOTIFICATION = "system_notification",
+    SYSTEM_NOTIFICATION,
+    WRITE_FILE,
+    CUSTOM,
     UNKNOWN
 }
 
+@Serializable
 data class ToolCall
 (
     val id: String =
@@ -56,10 +62,12 @@ data class ToolCall
         null,
     val durationMs: Long? =
         null,
-    val stepIndex: Int? =
-        null
+    val stepIndex: Int? = null,
+    val interactionType: String? = null,
+    val trajectoryId: String? = null
 )
 
+@Serializable
 data class ChatAttachment
 (
     val id: String =
@@ -77,10 +85,11 @@ data class ChatAttachment
         null,
     val size: Long =
         0L,
-    val mimeType: String? =
-        null
+    val mimeType: String? = null,
+    val base64: String? = null
 )
 
+@Serializable
 data class ChatMessage
 (
     val id: String =
@@ -103,9 +112,18 @@ data class ChatMessage
         emptyList(),
     val createdAt: Long =
         System.currentTimeMillis(),
-    val modelId: String? =
-        null
-)
+    val modelId: String? = null,
+    val tokenUsage: com.example.saif.domain.model.TokenUsage? = null
+) {
+    val textContent: String get() = content
+    val messageId: String get() = id
+    val sessionId: String get() = conversationId
+    val reasoningText: String? get() = thoughtText
+    val reasoningDurationMs: Long? get() = thoughtDurationMs
+    val toolInvocations: List<ToolCall> get() = toolCalls
+    val isStreamingActive: Boolean get() = isStreaming
+    val timestampMs: Long get() = createdAt
+}
 
 data class PendingToolApproval
 (

@@ -70,7 +70,7 @@ fun CloudBuildStatusCard(modifier: Modifier =
     val scope =
     rememberCoroutineScope()
     var isBusy by remember { mutableStateOf(value = false) }
-    var errorMsgMsg by remember { mutableStateOf<String?>(value = null) }
+    var errorMsg by remember { mutableStateOf<String?>(value = null) }
     Card(modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment =
@@ -102,9 +102,9 @@ fun CloudBuildStatusCard(modifier: Modifier =
             Text(
                 state.message,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (state.status == "failed") MaterialTheme.colorScheme.errorMsg else MaterialTheme.colorScheme.onSurface
+                color = if (state.status == "failed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
             )
-            errorMsg?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.errorMsg) }
+            errorMsg?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
             if (state.status == "ready") {
                 state.downloadUrl?.let { link ->
                     Text(
@@ -151,7 +151,7 @@ fun CloudBuildStatusCard(modifier: Modifier =
                                     SaifAiCloudManager.refreshDownloadLink()
                                     errorMsg = null
                                 } catch (err: Exception) {
-                                    errorMsg = e.localizedMessage ?: "Could not refresh private link"
+                                    errorMsg = err.localizedMessage ?: "Could not refresh private link"
                                 } finally {
                                     isBusy = false
                                 }
@@ -190,7 +190,7 @@ private fun LocalApkBuildCardContent(state: LocalApkBuildState, modifier: Modifi
                     },
                     fontWeight =
     FontWeight.Bold,
-                    color = if (state.status == "failed") MaterialTheme.colorScheme.errorMsg else MaterialTheme.colorScheme.primary,
+                    color = if (state.status == "failed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow =
     TextOverflow.Ellipsis,
@@ -211,7 +211,7 @@ private fun LocalApkBuildCardContent(state: LocalApkBuildState, modifier: Modifi
             Text(
                 text = state.message,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (state.status == "failed") MaterialTheme.colorScheme.errorMsg else MaterialTheme.colorScheme.onSurface
+                color = if (state.status == "failed") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
             )
 
             if (isBusy) {

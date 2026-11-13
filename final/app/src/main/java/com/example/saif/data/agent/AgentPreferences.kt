@@ -32,7 +32,7 @@ class AgentPreferences(private val context: Context) {
 
 class ChatSessionStore /* SAIF Chat Session Store */ {
     private val _messages = MutableStateFlow<List<SaifChatMessage>>(emptyList())
-    val messages: StateFlow<List<SaifChatMessage>> = _messages.asStateFlow()
+    val messages: MutableStateFlow<List<SaifChatMessage>> = _messages
 
     fun appendMessage(msg: SaifChatMessage) {
         _messages.value = _messages.value + msg

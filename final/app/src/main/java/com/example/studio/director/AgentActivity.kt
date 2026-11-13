@@ -128,5 +128,5 @@ internal suspend fun <T> cancellableResult(block: suspend () -> T): Result<T> = 
 } catch (e: kotlinx.coroutines.CancellationException) {
     throw e
 } catch (err: Exception) {
-    Result.failure(e)
+    Result.failure(err)
 }

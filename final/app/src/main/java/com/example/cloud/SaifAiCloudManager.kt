@@ -264,8 +264,8 @@ object SaifAiCloudManager {
             watch(appUid, firebaseUid, jobId, kind)
             return _current.value!!
         } catch (err: Exception) {
-            if (boundAppUid == appUid) _current.value = CloudBuildState(jobId, kind, "failed", e.message ?: "Cloud build could not start")
-            throw e
+            if (boundAppUid == appUid) _current.value = CloudBuildState(jobId, kind, "failed", err.message ?: "Cloud build could not start")
+            throw err
         }
     }
 
@@ -334,8 +334,8 @@ object SaifAiCloudManager {
                 "${asset.path} is on SAIF AI DOWNLOADS", link).also { _current.value = it }
         } catch (err: Exception) {
             if (boundAppUid == appUid) _current.value = CloudBuildState(jobId, CloudRequestFilter.Route.UPLOAD,
-                "failed", e.message ?: "Private file upload failed")
-            throw e
+                "failed", err.message ?: "Private file upload failed")
+            throw err
         }
     }
 

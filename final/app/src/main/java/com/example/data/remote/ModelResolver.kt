@@ -50,7 +50,7 @@ object ModelResolver {
                 Log.d(TAG, "Loaded ${availableModels.size} cached models from storage")
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Failed to load model cache: ${e.message}")
+            Log.w(TAG, "Failed to load model cache: ${err.message}")
         }
     }
 
@@ -95,7 +95,7 @@ object ModelResolver {
                     Log.w(TAG, "Models list request returned HTTP ${response.code}: $bodyString")
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Error refreshing model catalog: ${e.message}")
+                Log.w(TAG, "Error refreshing model catalog: ${err.message}")
             }
         }
     }

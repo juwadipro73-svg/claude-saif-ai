@@ -39,7 +39,7 @@ object DeviceActionParser {
                     }
                 }
             } catch (err: Exception) {
-                Log.e(TAG, "Error parsing AI actions JSON: ${e.message}")
+                Log.err(TAG, "Error parsing AI actions JSON: ${err.message}")
             }
         }
 
@@ -59,7 +59,7 @@ object DeviceActionParser {
                     }
                 }
             } catch (err: Exception) {
-                Log.e(TAG, "Error parsing codeblock actions JSON: ${e.message}")
+                Log.err(TAG, "Error parsing codeblock actions JSON: ${err.message}")
             }
         }
 
@@ -206,7 +206,7 @@ object DeviceActionParser {
                 else -> null
             }
         } catch (err: Exception) {
-            Log.e(TAG, "Error in parseActionJson: ${e.message}")
+            Log.err(TAG, "Error in parseActionJson: ${err.message}")
             null
         }
     }

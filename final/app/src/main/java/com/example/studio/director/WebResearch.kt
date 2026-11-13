@@ -62,7 +62,7 @@ object WebResearch {
                 if (!r.isSuccessful) return@withContext Result.failure(IllegalStateException("Search provider returned HTTP ${r.code}"))
                 Result.success(parse(provider(context), txt))
             }
-        } catch (err: Exception) { Result.failure(IllegalStateException("Search failed: ${e.javaClass.simpleName}")) }
+        } catch (err: Exception) { Result.failure(IllegalStateException("Search failed: ${err.javaClass.simpleName}")) }
     }
 
     fun parse(provider: String, json: String): List<ResearchSource> {

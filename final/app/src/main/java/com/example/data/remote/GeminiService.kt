@@ -71,7 +71,7 @@ object GeminiService {
             }
             Result.failure(Exception("No transcription returned"))
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 
@@ -112,7 +112,7 @@ object GeminiService {
             if (!data.isNullOrEmpty()) return@withContext Result.success(data)
             Result.failure(Exception("No audio data found in response"))
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 
@@ -317,7 +317,7 @@ object GeminiService {
                                         }
                                     }
                                 } catch (err: Exception) {
-                                    Log.e(TAG, "Failed parsing SSE chunk: ${e.message}")
+                                    Log.err(TAG, "Failed parsing SSE chunk: ${err.message}")
                                 }
                             }
                         }
@@ -327,8 +327,8 @@ object GeminiService {
                     }
                 }
             } catch (err: Exception) {
-                if (e is kotlinx.coroutines.CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
-                Log.w(TAG, "Streaming attempt failed: ${e.message}. Falling back to standard generateContent call...")
+                if (err is kotlinx.coroutines.CancellationException && err !is kotlinx.coroutines.TimeoutCancellationException) throw err
+                Log.w(TAG, "Streaming attempt failed: ${err.message}. Falling back to standard generateContent call...")
             }
 
             if (streamSucceeded && fullResponse.isNotEmpty()) {
@@ -381,12 +381,12 @@ object GeminiService {
             throw Exception("The AI model returned no response. Please try again.")
         } catch (err: Exception) {
             if (fullResponse.isNotEmpty()) {
-                Log.w(TAG, "Exception encountered, but returning partial streamed response (${fullResponse.length} chars): ${e.message}")
+                Log.w(TAG, "Exception encountered, but returning partial streamed response (${fullResponse.length} chars): ${err.message}")
                 return@withContext Result.success(fullResponse.toString())
             }
-            if (e is kotlinx.coroutines.CancellationException && e !is kotlinx.coroutines.TimeoutCancellationException) throw e
-            Log.e(TAG, "Error contacting Gemini API: ${e.message}")
-            throw e
+            if (err is kotlinx.coroutines.CancellationException && err !is kotlinx.coroutines.TimeoutCancellationException) throw err
+            Log.err(TAG, "Error contacting Gemini API: ${err.message}")
+            throw err
         }
     }
 

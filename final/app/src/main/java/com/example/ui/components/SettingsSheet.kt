@@ -193,7 +193,7 @@ fun SettingsSheet(
                     showCropDialog = true
                 }
             } catch (err: Exception) {
-                e.printStackTrace()
+                err.printStackTrace()
                 Toast.makeText(context, "Could not load selected photo", Toast.LENGTH_SHORT).show()
             }
         }

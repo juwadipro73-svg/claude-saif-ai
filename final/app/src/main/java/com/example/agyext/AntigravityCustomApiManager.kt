@@ -739,7 +739,7 @@ object AntigravityCustomApiManager {
         } catch (err: Exception) {
             AgyConnectionTestResult(
                 ok = false,
-                message = e.localizedMessage ?: "Connection failed",
+                message = err.localizedMessage ?: "Connection failed",
                 latencyMs = System.currentTimeMillis() - start
             )
         }

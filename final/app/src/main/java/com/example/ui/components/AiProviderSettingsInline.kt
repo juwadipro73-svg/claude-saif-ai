@@ -550,7 +550,7 @@ fun AiProviderSettingsInline() {
                                 ))
                             }
                         } catch (err: Exception) {
-                            fetchError = "❌ ${e.message ?: "Connection failed"}"
+                            fetchError = "❌ ${err.message ?: "Connection failed"}"
                             fetchSuccessMessage = null
                             val fallbackList = ProviderProfile.getById(providerName).defaultFallbackModels.map { Pair(it, true) }
                             if (fallbackList.isNotEmpty()) {

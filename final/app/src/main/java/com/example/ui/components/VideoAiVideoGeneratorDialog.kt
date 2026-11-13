@@ -606,7 +606,7 @@ fun VideoAiVideoGeneratorDialog(
                                     Toast.makeText(context, "✅ AI Scene Synthesized!", Toast.LENGTH_SHORT).show()
                                 } catch (err: Exception) {
                                     isGenerating = false
-                                    generationPhase = "Synthesis Error: ${e.message}"
+                                    generationPhase = "Synthesis Error: ${err.message}"
                                     Toast.makeText(context, "AI synthesis completed with fallback", Toast.LENGTH_SHORT).show()
                                 }
                             }

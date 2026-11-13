@@ -123,7 +123,7 @@ object IntentRouter {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Fast router LLM failed, using heuristic: ${e.message}")
+            Log.w(TAG, "Fast router LLM failed, using heuristic: ${err.message}")
         }
         null
     }
