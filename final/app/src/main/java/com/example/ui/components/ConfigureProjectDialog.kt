@@ -265,7 +265,7 @@ fun ConfigureProjectDialog(
                             }
                         }
 
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = onDismiss,
                             modifier =
     Modifier

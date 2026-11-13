@@ -29,8 +29,6 @@
 # OkHttp & Okio
 -dontwarn okhttp3.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
 -dontwarn javax.annotation.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
@@ -89,3 +87,7 @@
 }
 # WorkManager's Room database is created by reflection; R8 full mode strips its no-arg constructor.
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
+
+# Retain useful crash line numbers, but not original source filenames.
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable

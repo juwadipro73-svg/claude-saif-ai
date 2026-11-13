@@ -54,17 +54,15 @@ data class AgyCustomApiProfile(
     val extraHeaders: Map<String, String> = emptyMap()
 ) {
     fun isLocalEndpoint(): Boolean {
-        val lower = baseUrl.lowercase().trim()
-        return lower.startsWith("http://localhost") ||
-            lower.startsWith("http://127.0.0.1") ||
-            lower.startsWith("http://192.168.") ||
-            lower.startsWith("http://10.")
+        val uri = runCatching { java.net.URI(baseUrl.trim()) }.getOrNull() ?: return false
+        return uri.host?.lowercase() in setOf("localhost", "127.0.0.1", "[::1]", "::1")
     }
 
     fun isReady(): Boolean {
-        return baseUrl.isNotBlank() &&
-            selectedModel.isNotBlank() &&
-            (apiKey.isNotBlank() || isLocalEndpoint())
+        val uri = runCatching { java.net.URI(baseUrl.trim()) }.getOrNull() ?: return false
+        val secureEndpoint = uri.scheme == "https" || (uri.scheme == "http" && isLocalEndpoint())
+        return secureEndpoint && !uri.host.isNullOrBlank() && uri.userInfo == null &&
+            selectedModel.isNotBlank() && (apiKey.isNotBlank() || isLocalEndpoint())
     }
 
     fun effectiveModels(): List<String> {
@@ -230,7 +228,20 @@ object AntigravityCustomApiManager {
     @Synchronized
     fun init(context: Context) {
         if (prefs != null) return
-        val sp = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val app = context.applicationContext
+        val masterKey = androidx.security.crypto.MasterKey.Builder(app)
+            .setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM).build()
+        val sp = androidx.security.crypto.EncryptedSharedPreferences.create(
+            app, "${PREFS_NAME}_secure", masterKey,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM)
+        val legacy = app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val oldState = legacy.getString(KEY_STATE_JSON, null)
+        if (oldState != null) {
+            if (sp.contains(KEY_STATE_JSON) || sp.edit().putString(KEY_STATE_JSON, oldState).commit()) {
+                legacy.edit().remove(KEY_STATE_JSON).commit()
+            }
+        }
         prefs = sp
         val raw = sp.getString(KEY_STATE_JSON, null)
         if (!raw.isNullOrBlank()) {

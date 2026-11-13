@@ -897,7 +897,7 @@ fun VideoTimelineStudioScreen(
                     Row(verticalAlignment =
     Alignment.CenterVertically, modifier =
     Modifier.weight(1f)) {
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 isPlaying = false
                                 com.example.utils.TTSManager.stop()
@@ -962,7 +962,7 @@ fun VideoTimelineStudioScreen(
 
                     Row(verticalAlignment =
     Alignment.CenterVertically) {
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = { handleUndo() },
                             modifier =
     Modifier.size(32.dp)
@@ -975,7 +975,7 @@ fun VideoTimelineStudioScreen(
     Modifier.size(18.dp)
                             )
                         }
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = { handleRedo() },
                             modifier =
     Modifier.size(32.dp)
@@ -993,7 +993,7 @@ fun VideoTimelineStudioScreen(
     Modifier.width(6.dp))
 
                         // AI DIRECTOR BUTTON
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = { showPromptDirectorDialog = true },
                             modifier =
     Modifier
@@ -1282,7 +1282,7 @@ fun VideoTimelineStudioScreen(
                                 }
 
                                 // Top right fullscreen toggle
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = { showFullscreenPlayer = true },
                                     modifier =
     Modifier
@@ -1375,7 +1375,7 @@ fun VideoTimelineStudioScreen(
     Arrangement.spacedBy(4.dp)
                     ) {
                         // Jump to Start (|<<)
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 currentProject = currentProject.copy(currentPositionSeconds = 0f)
                                 Toast.makeText(context, "|<< Start", Toast.LENGTH_SHORT).show()
@@ -1388,7 +1388,7 @@ fun VideoTimelineStudioScreen(
                         }
 
                         // Replay -5s
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 val next = (currentProject.currentPositionSeconds - 5f).coerceAtLeast(0f)
                                 currentProject = currentProject.copy(currentPositionSeconds = next)
@@ -1442,7 +1442,7 @@ fun VideoTimelineStudioScreen(
                         }
 
                         // Forward +5s
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 val next = (currentProject.currentPositionSeconds + 5f).coerceAtMost(currentProject.totalDurationSeconds)
                                 currentProject = currentProject.copy(currentPositionSeconds = next)
@@ -1455,7 +1455,7 @@ fun VideoTimelineStudioScreen(
                         }
 
                         // Jump to End (>>|)
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 currentProject = currentProject.copy(currentPositionSeconds = currentProject.totalDurationSeconds)
                                 Toast.makeText(context, ">>| End", Toast.LENGTH_SHORT).show()
@@ -1475,7 +1475,7 @@ fun VideoTimelineStudioScreen(
                         horizontalArrangement =
     Arrangement.spacedBy(4.dp)
                     ) {
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = { showFullscreenPlayer = true },
                             modifier =
     Modifier.size(28.dp)
@@ -1649,7 +1649,7 @@ fun VideoTimelineStudioScreen(
     Modifier.width(8.dp))
 
                 // Chat Bubble Director Shortcut
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = { activeSubView = VideoStudioSubView.AI_DIRECTOR_CHAT },
                     modifier =
     Modifier
@@ -1753,7 +1753,7 @@ fun VideoTimelineStudioScreen(
                             horizontalArrangement =
     Arrangement.spacedBy(4.dp)
                         ) {
-                            IconButton(
+                            com.example.ui.components.MorphingIconButton(
                                 onClick = { timelineZoom = (timelineZoom - 0.25f).coerceAtLeast(0.5f) },
                                 modifier =
     Modifier.size(24.dp)
@@ -1777,7 +1777,7 @@ fun VideoTimelineStudioScreen(
                                 )
                             )
 
-                            IconButton(
+                            com.example.ui.components.MorphingIconButton(
                                 onClick = { timelineZoom = (timelineZoom + 0.25f).coerceAtMost(3.5f) },
                                 modifier =
     Modifier.size(24.dp)
@@ -3307,7 +3307,7 @@ fun VideoTimelineStudioScreen(
     11.sp)
                                     }
                                 }
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = { if (!isGeneratingFromPrompt) showPromptDirectorDialog = false },
                                     modifier =
     Modifier

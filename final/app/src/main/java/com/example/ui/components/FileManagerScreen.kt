@@ -213,7 +213,7 @@ fun FileManagerScreen(
                         verticalAlignment =
     Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = {
+                        com.example.ui.components.MorphingIconButton(onClick = {
                             val defaultPath = when (category) {
                                 FileManagerCategory.JAVA -> "app/src/main/java/${project.packageName.replace('.', '/')}"
                                 FileManagerCategory.RESOURCES -> "app/src/main/res"
@@ -674,7 +674,7 @@ private fun FileManagerItemCard(
             }
 
             // Delete Action Button
-            IconButton(
+            com.example.ui.components.MorphingIconButton(
                 onClick = onDelete,
                 modifier =
     Modifier.size(34.dp)

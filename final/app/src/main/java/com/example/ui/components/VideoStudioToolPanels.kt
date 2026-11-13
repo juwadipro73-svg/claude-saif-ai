@@ -134,7 +134,7 @@ fun VideoStudioToolContainer(
                     )
                 }
 
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onCloseTab,
                     modifier =
     Modifier.size(28.dp)
@@ -1010,7 +1010,7 @@ fun AudioToolSheet(
     FontWeight.Bold, modifier =
     Modifier.padding(horizontal = 4.dp, vertical = 2.dp))
                                 }
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = {
                                         previewingTrack = if (previewingTrack == track.id) null else track.id
                                     },

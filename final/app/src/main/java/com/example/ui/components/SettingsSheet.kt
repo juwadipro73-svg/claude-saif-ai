@@ -170,6 +170,7 @@ fun SettingsSheet(
     val isPinProtected by com.example.util.SmartConversationMemory.isPinProtected.collectAsState()
     var showCropDialog by remember { mutableStateOf(false) }
     var selectedCropBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var showCredits by remember { mutableStateOf(false) }
     var showEditNameDialog by remember { mutableStateOf(false) }
     var showMemoryVaultDialog by remember { mutableStateOf(false) }
     var showCustomApiExtDialog by remember { mutableStateOf(false) }
@@ -850,6 +851,7 @@ fun SettingsSheet(
                 Column {
                     ENGINE_SETTINGS_SECTIONS.filterNot { section ->
                         section in setOf(
+                            SettingsSection.APPEARANCE,
                             SettingsSection.WEBVIEW_EXTENSIONS,
                             SettingsSection.SLASH_COMMANDS,
                             SettingsSection.AI_SKILLS,
@@ -857,7 +859,7 @@ fun SettingsSheet(
                         )
                     }.forEachIndexed { index, section ->
                         if (index > 0) HorizontalDivider(color = SaifTheme.colors.cardBorder)
-                        SettingsActionRow(section.title, section.subtitle) {
+                        SettingsActionRow(section.title, "Configure ${section.title.lowercase()}") {
                             onOpenEngineSettings(section.name)
                         }
                     }
@@ -871,9 +873,10 @@ fun SettingsSheet(
             Spacer(modifier =
     Modifier.height(32.dp))
 
-            // Footer
+            SectionHeader("ABOUT")
+            SettingsActionRow("Credits", "SAIF AI & open-source acknowledgements") { showCredits = true }
             Text(
-                text = "SAIF AI is created by SAIF. Version 1.0.0\n${com.saifai.app.BuildConfig.BUILD_STAMP}",
+                text = "Version ${com.saifai.app.BuildConfig.VERSION_NAME}\n${com.saifai.app.BuildConfig.BUILD_STAMP}",
                 fontSize =
     11.sp,
                 color = SubtextMuted,
@@ -883,6 +886,8 @@ fun SettingsSheet(
             )
         }
     }
+
+    if (showCredits) CreditsDialog { showCredits = false }
 
     if (showEditNameDialog) {
         EditNameDialog(

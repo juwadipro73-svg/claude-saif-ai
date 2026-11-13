@@ -177,7 +177,7 @@ fun VideoFullscreenPlayerDialog(
                     )
                 }
 
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onClose,
                     modifier =
     Modifier
@@ -247,7 +247,7 @@ fun VideoFullscreenPlayerDialog(
                         verticalAlignment =
     Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onReplay5s, modifier =
+                        com.example.ui.components.MorphingIconButton(onClick = onReplay5s, modifier =
     Modifier.size(40.dp)) {
                             Icon(Icons.Default.Replay5, contentDescription = "-5s", tint =
     Color.White, modifier =
@@ -281,7 +281,7 @@ fun VideoFullscreenPlayerDialog(
                         Spacer(modifier =
     Modifier.width(16.dp))
 
-                        IconButton(onClick = onForward5s, modifier =
+                        com.example.ui.components.MorphingIconButton(onClick = onForward5s, modifier =
     Modifier.size(40.dp)) {
                             Icon(Icons.Default.Forward5, contentDescription = "+5s", tint =
     Color.White, modifier =

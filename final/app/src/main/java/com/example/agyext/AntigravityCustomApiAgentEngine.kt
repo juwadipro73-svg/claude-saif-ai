@@ -18,6 +18,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
@@ -74,7 +75,9 @@ class AntigravityCustomApiAgentEngine(
     private val httpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(180, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.MINUTES)
+            .callTimeout(20, TimeUnit.MINUTES)
+            .retryOnConnectionFailure(false)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
@@ -169,6 +172,7 @@ class AntigravityCustomApiAgentEngine(
         temperature: Float,
         onStreamingText: (String) -> Unit
     ): String = withContext(Dispatchers.IO) {
+        require(profile.isReady()) { "Choose a model and a valid HTTPS API endpoint (HTTP is allowed only for loopback)." }
         sessionAllowAll = false
         ensureWorkspaceDirectories()
 
@@ -459,8 +463,10 @@ class AntigravityCustomApiAgentEngine(
                 "build_android_apk" -> buildAndroidApkTool(args)
                 else -> Triple(false, "Unknown tool: $name", 1)
             }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
         } catch (err: Exception) {
-            Triple(false, "Tool error: ${e.localizedMessage ?: e.javaClass.simpleName}", 1)
+            Triple(false, "Tool error: ${err.localizedMessage ?: err.javaClass.simpleName}", 1)
         }
     }
 
@@ -471,7 +477,7 @@ class AntigravityCustomApiAgentEngine(
     ): Triple<Boolean, String, Int?> {
         val rawCommand = args.optString("command").trim()
         if (rawCommand.isBlank()) return Triple(false, "Missing 'command' argument.", 1)
-        val timeoutSec = args.optLong("timeout_seconds", 180L).coerceIn(5L, 600L)
+        val timeoutSec = args.optLong("timeout_seconds", 900L).coerceIn(5L, 3600L)
 
         if (LocalEnvironmentManager.isUbuntuInstalled(appContext)) {
             val sb = StringBuilder()
@@ -481,6 +487,7 @@ class AntigravityCustomApiAgentEngine(
                 timeoutSeconds = timeoutSec,
                 onOutputLine = { line ->
                     sb.appendLine(line)
+                    if (sb.length > 128 * 1024) sb.delete(0, sb.length - 128 * 1024)
                     onLiveOutput(sb.toString())
                 }
             )
@@ -500,25 +507,52 @@ class AntigravityCustomApiAgentEngine(
         pb.environment()["HOME"] = hostWorkspace.absolutePath
         val proc = pb.start()
         runningProcesses[toolId] = proc
-        return try {
+        return kotlinx.coroutines.coroutineScope {
             val out = StringBuilder()
-            BufferedReader(InputStreamReader(proc.inputStream, Charsets.UTF_8)).use { reader ->
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    out.appendLine(line)
-                    onLiveOutput(out.toString())
+            // Drain concurrently: waiting for EOF before waitFor made the timeout ineffective.
+            val readerJob = launch(Dispatchers.IO) {
+                val chars = CharArray(4096)
+                proc.inputStream.reader(Charsets.UTF_8).use { reader ->
+                    var lastPublish = 0L
+                    while (true) {
+                        val count = try { reader.read(chars) } catch (_: java.io.IOException) { break }
+                        if (count < 0) break
+                        val snapshot = synchronized(out) {
+                            out.append(chars, 0, count)
+                            if (out.length > 128 * 1024) out.delete(0, out.length - 128 * 1024)
+                            out.toString()
+                        }
+                        val now = android.os.SystemClock.elapsedRealtime()
+                        if (now - lastPublish >= 100) {
+                            onLiveOutput(snapshot)
+                            lastPublish = now
+                        }
+                    }
                 }
             }
-            val finished = proc.waitFor(timeoutSec, TimeUnit.SECONDS)
-            if (!finished) {
-                proc.destroyForcibly()
-                Triple(false, "${out}\n[Timed out after ${timeoutSec}s]".trim(), 124)
-            } else {
-                val code = proc.exitValue()
-                Triple(code == 0, out.toString().trim().ifBlank { "(exit code $code)" }, code)
+            try {
+                val deadline = android.os.SystemClock.elapsedRealtime() + timeoutSec * 1000
+                while (proc.isAlive && android.os.SystemClock.elapsedRealtime() < deadline) {
+                    kotlinx.coroutines.delay(100)
+                }
+                val timedOut = proc.isAlive
+                if (timedOut) proc.destroyForcibly()
+                // Descendants can inherit stdout; never wait indefinitely for their EOF.
+                if (kotlinx.coroutines.withTimeoutOrNull(2000) { readerJob.join(); true } != true) {
+                    proc.inputStream.close()
+                    readerJob.cancel()
+                }
+                val text = synchronized(out) { out.toString().trim() }
+                onLiveOutput(text)
+                val code = if (timedOut) 124 else proc.exitValue()
+                Triple(code == 0, if (timedOut) "$text\n[Timed out after ${timeoutSec}s]"
+                    else text.ifBlank { "(exit code $code)" }, code)
+            } finally {
+                if (proc.isAlive) proc.destroyForcibly()
+                proc.inputStream.close()
+                readerJob.cancel()
+                runningProcesses.remove(toolId)
             }
-        } finally {
-            runningProcesses.remove(toolId)
         }
     }
 

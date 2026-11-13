@@ -1,0 +1,61 @@
+name: Build Android APK
+on:
+  push:
+    branches: [arena/306128e0-claude-saif-ai]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: final
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Check runner Gradle
+        run: gradle --version
+      - name: Build installable debug APK (tests not requested)
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle :app:assembleStandardDebug --no-daemon --no-configuration-cache 2>&1 | tee build-ci.log
+      - name: Expose build failures in check annotations
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('build-ci.log')
+          if p.exists():
+              lines = p.read_text(errors='replace').splitlines()
+              errors = [l for l in lines if l.startswith('e: ') or 'Could not resolve' in l or 'Could not find' in l]
+              text = '\n'.join(errors or lines[-100:])
+              for i in range(0, min(len(text), 60000), 6000):
+                  chunk = text[i:i+6000].replace('%','%25').replace('\r','').replace('\n','%0A')
+                  print('::error::' + chunk)
+          PY
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.run_number }}
+          path: final/build-ci.log
+          if-no-files-found: ignore
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SAIF-AI-debug-${{ github.run_number }}
+          path: final/app/build/outputs/apk/standard/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30

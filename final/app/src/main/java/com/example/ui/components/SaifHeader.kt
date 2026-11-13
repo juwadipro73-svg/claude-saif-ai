@@ -416,7 +416,7 @@ fun SaifHeader(
                         label = "ThemeRotation"
                     )
 
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = onToggleTheme,
                         interactionSource = themeInteractionSource,
                         modifier =
@@ -458,7 +458,7 @@ fun SaifHeader(
                         label = "SettingsRotation"
                     )
 
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = onOpenSettings,
                         interactionSource = settingsInteraction,
                         modifier =

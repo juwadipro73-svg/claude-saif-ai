@@ -77,6 +77,7 @@ fun SaifEmptyState(
     Modifier
 ) {
     val c = SaifTheme.colors
+    val customApiState by com.example.agyext.AntigravityCustomApiManager.stateFlow.collectAsState()
     Column(
         modifier =
     modifier
@@ -86,6 +87,7 @@ fun SaifEmptyState(
         verticalArrangement = Arrangement.Center
     ) {
         when {
+            customApiState.isActiveAndReady -> DeveloperWelcomeCards()
             !isNetworkConnected -> {
                 SaifMarkCircle(icon = Icons.Outlined.CloudOff, tint = Color(0xFFEF4444))
                 Spacer(Modifier.height(16.dp))
@@ -189,7 +191,7 @@ fun SaifEmptyState(
             }
 
             else -> {
-                SaifMarkCircle(icon = Icons.Outlined.AutoAwesome, tint = SaifPurple)
+                DeveloperWelcomeCards()
             }
         }
     }

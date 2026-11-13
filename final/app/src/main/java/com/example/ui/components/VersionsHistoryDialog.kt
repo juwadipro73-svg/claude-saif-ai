@@ -126,7 +126,7 @@ fun VersionsHistoryDialog(
                             )
                         }
                     }
-                    IconButton(onClick = onDismiss) {
+                    com.example.ui.components.MorphingIconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFA8A59B))
                     }
                 }

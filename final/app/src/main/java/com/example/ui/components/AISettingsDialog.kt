@@ -89,7 +89,7 @@ fun AISettingsDialog(
                         modifier =
     Modifier.weight(1f)
                     )
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = { onConfigSaved.invoke(); onDismiss.invoke() },
                         modifier =
                             Modifier

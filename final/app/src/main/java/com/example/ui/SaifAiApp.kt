@@ -601,7 +601,7 @@ fun SaifAiApp(
     9.sp, color = com.example.ui.theme.SaifTheme.colors.textPrimary)
                                             }
                                         }
-                                        IconButton(
+                                        com.example.ui.components.MorphingIconButton(
                                             onClick = { viewModel.removeAttachment(uri) },
                                             modifier =
     Modifier
@@ -956,7 +956,7 @@ fun SaifAiApp(
     Modifier.fillMaxSize(),
                     startInSignUpMode = true
                 )
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = { showAccountUpgrade = false; accountUpgradeSourceUid = null },
                     modifier =
     Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(10.dp)

@@ -1240,7 +1240,7 @@ private fun AdminUsersTab(
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color(0xFFB3A0F2)) },
             trailingIcon = {
                 if (searchQuery.isNotBlank()) {
-                    IconButton(onClick = { searchQuery = "" }) {
+                    com.example.ui.components.MorphingIconButton(onClick = { searchQuery = "" }) {
                         Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color(0xFFA8A59B))
                     }
                 }
@@ -1996,7 +1996,7 @@ private fun LiquidUserManagementCard(
                 }
 
                 // Edit Custom Limits
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onEditLimits,
                     enabled = !isProcessing,
                     modifier =
@@ -2016,7 +2016,7 @@ private fun LiquidUserManagementCard(
                 }
 
                 // Reset Quota
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onResetQuota,
                     enabled = !isProcessing,
                     modifier =
@@ -2036,7 +2036,7 @@ private fun LiquidUserManagementCard(
                 }
 
                 // Delete
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onDeleteClick,
                     enabled = !isProcessing,
                     modifier =
@@ -2499,7 +2499,7 @@ private fun AdminApiGatewayTab(
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    com.example.ui.components.MorphingIconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(
                             imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle Visibility",
@@ -2924,7 +2924,7 @@ private fun LiquidQuotaSelectorCard(
                 // Value Stepper Controls
                 Row(verticalAlignment =
     Alignment.CenterVertically) {
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = { if (currentValue > 1) onValueChange(currentValue - 1) },
                         modifier =
     Modifier
@@ -2957,7 +2957,7 @@ private fun LiquidQuotaSelectorCard(
                         )
                     }
 
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = { onValueChange(currentValue + 1) },
                         modifier =
     Modifier

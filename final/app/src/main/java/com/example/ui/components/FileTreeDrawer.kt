@@ -201,7 +201,7 @@ fun FileTreeDrawer(
                 Row(verticalAlignment =
     Alignment.CenterVertically) {
                     if (onExitProject != null) {
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 onCloseDrawer()
                                 onExitProject()
@@ -218,7 +218,7 @@ fun FileTreeDrawer(
                             )
                         }
                     }
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = onCloseDrawer,
                         modifier =
     Modifier.size(34.dp)
@@ -274,7 +274,7 @@ fun FileTreeDrawer(
 
             Row(verticalAlignment =
     Alignment.CenterVertically) {
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onNewFileClick,
                     modifier =
     Modifier.size(28.dp)
