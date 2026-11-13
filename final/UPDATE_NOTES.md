@@ -1,7 +1,7 @@
 # SAIF AI — UI and reliability update
 
 ## Delivery status
-Source update only. No tests, Android build, emulator run, or device validation was performed. This environment has no Java/Android SDK and cannot reach the required Google/Gradle repositories. **There is no generated APK or verified APK download link.** See BUILD_STATUS.md for pre-existing missing classes and backend placeholders; this update does not resolve those project-wide blockers.
+Source update only. A subsequent GitHub Actions Android debug build was attempted and failed Kotlin compilation after the Room schema blocker was fixed. No tests, emulator run, or device validation was performed. **There is no generated APK or verified APK download link.** See BUILD_STATUS.md for the actual run and remaining compiler blockers. See BUILD_STATUS.md for pre-existing missing classes and backend placeholders; this update does not resolve those project-wide blockers.
 
 ## Implemented
 - Native Compose Architect / Builder / Reviewer welcome cards with entrance animation and horizontal scrolling. Custom API users see them without needing hub authentication.
