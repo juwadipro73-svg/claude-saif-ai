@@ -24,37 +24,47 @@
 
 ## Credits and licences: never remove them
 
-SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, the JARVIS AI Android
-assistant by Tech GPTx, Termux, PRoot and more). An earlier round removed the Tech GPTx credit; that broke its
-licence and had to be undone. Rules for every agent and every change:
+SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, Termux, PRoot and more).
+Rules for every agent and every change:
 
 - Do not delete or reword away any name, copyright line or licence in `LICENSE`, `THIRD_PARTY_NOTICES.md`,
-  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt`,
-  `automation/.../security/SecurityManager.kt`, the module's `AndroidManifest.xml` comment, the creator links
-  (Tech GPTx's Instagram and YouTube) or the screen footers. Do not claim that any third-party code is
-  "100% owned" by SAIF AI.
+  `licenses/` or the settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
 - Do not change the project to a proprietary or "all rights reserved" licence. It contains GPL code.
 - When you add a library or copy code, add it to `THIRD_PARTY_NOTICES.md` with its licence, then copy the file to
   `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
-- New code must be under a licence that fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar).
+- Only add code whose licence fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar). Code under a licence
+  with extra conditions (for example a compulsory credit in videos) must not be added.
 - The CI build prints the libraries that are really packaged in the APK as check annotations named
   "APK libraries i/n" (last step of `.github/workflows/build-apk.yml`). When dependencies change, compare
   section 3 of `THIRD_PARTY_NOTICES.md` with that list.
 - The assistant's spoken or typed answer to "who made you?" is the product persona (SAIF AI, see
   `SaifIdentity.RULE`). It is separate from these legal credits and must not be used as a reason to remove them.
 
-### The `automation/` module stays, with its licence and its credits (owner's decision, 2026-11-12)
+### The live voice is SAIF AI's own code; the third-party `automation/` module is gone (2026-11-13)
 
-The live voice and phone-automation module `automation/` (Java package `com.jarvis.assistant`) is the JARVIS AI
-Android assistant by Tech GPTx under TAMCL v1.0. The owner wants the app to keep working with it (purple live-voice
-button, orb, screen share, on-device speech fallback) and wants its licence and credits kept.
+Until build #10 the live voice conversation (purple mic) ran on a third-party module, `automation/` (Java package
+`com.jarvis.assistant`, the "JARVIS AI Android assistant" by Tech GPTx, TAMCL v1.0). The owner had all of its code,
+its licence and its credits removed and replaced by SAIF AI's own code, because that licence does not fit the GPL.
 
-- Builds #6 to #8 were made without the module because a request of the owner was misread as "remove the code".
-  Build #10 has the module, `licenses/TAMCL-1.0.txt` and every credit again, and names the author again in the
-  places inside the module where an earlier edit had written "SAIF AI" instead. Do not remove them again.
-  (There is no build #9: a new push cancels the build that is still running for the same branch, see
-  `concurrency` in `.github/workflows/build-apk.yml`.)
-- If an instruction about this module, its licence or its credits is unclear, ask the owner before deleting
-  anything. Removing a feature is never the way to settle a credit or licence question.
-- The mismatch between the GPL and TAMCL v1.0 is described in section 8 of `THIRD_PARTY_NOTICES.md`. Keeping the
-  module is the owner's decision; the open point is settled by a written permission from Tech GPTx, not by code.
+- Do not re-add the module and do not copy or adapt code from that project (github.com/techgptx/Playlist).
+  `LegalNoticesBundleTest` fails when `com.jarvis.assistant`, `SaifAutomation` or `JarvisApp` is used again.
+  Do not add credits or a licence file for it either: nothing of it is in the app.
+- The own engine, all in `app/src/main/java/com/example/`:
+  - `live/SaifLive.kt` - the state and the functions the screens use (start, stop, mute, interrupt, screen share).
+  - `live/SaifLiveService.kt` - foreground service (microphone; also mediaProjection while the screen is shared),
+    notification, wake lock, 30-minute idle end, memory learning after each turn.
+  - `live/LiveTurnLoop.kt` - one conversation: listen, speech-to-text, answer (phone agent, coding bridge or the
+    provider), text-to-speech, barge-in. It existed before and was only freed from the module's types.
+  - `live/LiveScreenCapture.kt` - shared-screen pictures (reduced size, one per second, JPEG, never stored).
+  - `live/LivePrompt.kt`, `live/LiveModels.kt` - the spoken-answer prompt and the shared types and rules.
+  - `stt/OfflineSpeech.kt`, `stt/OfflineSpeechFiles.kt` - on-device speech recognition with the Vosk library
+    (Apache-2.0); the model is downloaded once into `files/vosk-model`.
+  - `ui/components/SaifLiveOrb.kt` - the orb, drawn with Compose Canvas, and the live conversation screen.
+- Things the old module had that SAIF AI never showed, and that therefore were not rebuilt: its own settings
+  screens, voice enrolment (owner voice lock), overlay avatars, its hands-free standby, its persona modes and its
+  direct Gemini-audio connection. `SaifLiveSettingsSection.kt` was never called from any screen and was deleted.
+- Not verified on a phone: the new code is compiled and unit-tested by CI only. Check on a device after changes:
+  start and stop from the purple mic, barge-in, mute, screen share on Android 14+, a provider without
+  speech-to-text (model download), and that the session ends when the app account signs out.
+- Older text in this file and in `docs/ROUND_*_REPORT.md` that mentions `SaifAutomation`,
+  `JarvisConversationService` or `orb.html` describes code that no longer exists.

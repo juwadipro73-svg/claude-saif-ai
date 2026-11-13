@@ -10,9 +10,7 @@ import com.example.data.remote.AIApiUtility
 import com.example.data.remote.ModelResolver
 import com.example.data.remote.ModelRole
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
@@ -125,9 +123,9 @@ object SttRouter {
         val candidates = resolveSttCandidates(state.providerName, userKeys)
 
         // Providers such as Anthropic and OpenRouter do not expose an STT endpoint.
-        // The existing Vosk model is used on-device instead of requiring a second API key.
+        // The on-device speech model is used instead of requiring a second API key.
         if (candidates.isEmpty() && context != null) {
-            com.jarvis.assistant.audio.VoskModelManager.init(context.applicationContext, CoroutineScope(SupervisorJob() + Dispatchers.IO))
+            OfflineSpeech.prepare(context)
         }
 
         val vocabPrompt = buildVocabularyPrompt(profile, context)
@@ -210,7 +208,7 @@ object SttRouter {
             }
         }
 
-        val vosk = com.jarvis.assistant.audio.VoskModelManager
+        val vosk = OfflineSpeech
         if (!vosk.isModelReady.value && context != null) {
             // Round 10: the on-device model is the universal fallback that makes live voice work with ANY
             // API key, so wait longer for its one-time download instead of giving up after 20 s.

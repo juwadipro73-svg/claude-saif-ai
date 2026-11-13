@@ -53,13 +53,11 @@ and a **video studio** (timeline editor: lanes CODE, VIDEO, VISUAL, TEXT, VOICE,
 - `studio/audio/` — `AudioMixer`, `NarrationPolish` (silence trim, fades), `SfxSynth`. `studio/ui/` — Compose screens (`SaifDirectorScreen`, `StudioPreviewPanel`, `StudioSceneLayers`…).
 - `ui/components/TelegramAssetManager.kt`, `TelegramCatalogStore.kt` — Telegram library (sync, caption parsing, download, ranking).
 - `llm/`, `studio/ai/` — provider-agnostic LLM client (Gemini, OpenAI, Anthropic, Groq, OpenRouter, custom). Other packages (`agent/`, `builder/`, `compiler/`, `data/`) are the rest of the app.
-- **Round 9 app-wide backends:** `utils/SaifVoice.kt` (ONE voice for chat + live + video; **SAIF ADVANCE VOICE** is the default),
-  `util/SaifMemoryCore.kt` (memory recall tagged per feature, mirrored into the automation engine's Room bank),
-  `ui/components/SaifLiveOrb.kt` (3D orb WebView + `SaifLiveConversationPanel` + `SaifLiveOrbBubble`), `ui/components/SaifLiveModeSheet.kt`
-  (Normal voice / Share screen chooser + `SaifLiveSession`), `ui/components/SaifLiveSettingsSection.kt` (merged automation settings).
-  `SaifHeader.kt` no longer has the red **+** button. The automation module is reached only through `com.jarvis.assistant.SaifAutomation`
-  (host-facing API: `LiveMode`, engine flows, `startLive`/`stopLive`/`startScreenShare`/…, and the `hostVoiceName`/`hostMemory`/`hostAutoLanguage` resolvers
-  that `SaifApplication` registers).
+- **App-wide backends:** `utils/SaifVoice.kt` (ONE voice for chat replies, live voice and video narration),
+  `util/SaifMemoryCore.kt` (memory recall tagged per feature). `SaifHeader.kt` no longer has the red **+** button.
+  **Live voice (purple mic) is SAIF AI's own engine**: `live/SaifLive.kt`, `live/SaifLiveService.kt`,
+  `live/LiveTurnLoop.kt`, `live/LiveScreenCapture.kt`, `stt/OfflineSpeech.kt`, `ui/components/SaifLiveOrb.kt`
+  (see the last section of this file).
 - Tests: `app/src/test/java/com/example/studio/{director,composer}/` (+ Round 9: `AssetPlacementTest`, `AssetHunterTest`, `PlacementApplierTest`,
   `SceneUniquenessTest`, `ElementClampTest`).
 
@@ -81,8 +79,8 @@ and a **video studio** (timeline editor: lanes CODE, VIDEO, VISUAL, TEXT, VOICE,
 - Voice clip `aiWhy` carries `grp=s1+s2` for grouped clips; SFX `aiWhy` carries `@offsetMs`. `retimeAfterChange` relies on both.
 
 ## 6. Known limitations (be honest about them)
-- Not compiled outside CI. Highest-risk code: export audio mux, TTS to file, and the new Round-9 Kotlin (`AssetHunter`, `AssetPlacement`, `SceneFx`, `huntAssets`, `SaifLiveOrb`, `SaifMemoryCore`) — see section 9.
-- **The live conversation still speaks only the Gemini Live WebSocket protocol** (`GeminiLiveWebSocket`, gated by `SaifApiConfig.isGemini`). The orb, screen share, mic and settings all work with any provider, but with a non-Gemini provider there is no turn-based STT → `AiClient` → TTS fallback yet, so the voice session will not connect. This is the biggest remaining piece of the automation merge.
+- Not compiled outside CI. Highest-risk code: export audio mux, TTS to file, and the new Round-9 Kotlin (`AssetHunter`, `AssetPlacement`, `SceneFx`, `huntAssets`, `SaifMemoryCore`) — see section 9.
+- **Live voice is turn-based** (listen, transcribe, answer, speak), not a streaming audio connection. Speech-to-text uses an OpenAI, Groq or Gemini key when one is saved, otherwise the on-device English model (`OfflineSpeech`, downloaded once). The new engine is compiled by CI but not yet verified on a phone.
 - Narration is Android on-device TTS (needs a voice for the language), no cloud TTS/cloning. Quality depends on the device engine.
 - Telegram: bots cannot read old history; library = posts seen by the bot within 24 h of upload (sync workflow every 6 h) + posts already in the app.
 - Vision verification only on multimodal providers; otherwise technical checks only. Licences are "unverified".
@@ -99,14 +97,13 @@ and a **video studio** (timeline editor: lanes CODE, VIDEO, VISUAL, TEXT, VOICE,
 | Asset hidden behind graphics | `RenderPlan` z-order, `SCENE_OVERLAY_MARKER`, `AssetPlacement.role` (backdrop vs sticker) |
 | Asset in the wrong place / wrong size / spins oddly | the `@pl=` tag in `aiWhy`, `AssetPlacements.decodeTag`, `PlacementApplier.transform/keyframes`, `StudioSceneLayers.PlacedImage` |
 | Asset does not move at all | `PlacementApplier.keyframes` (needs ≥2 keys inside the scene), absolute `timeUs` vs local `tMs`, easing name not in `LayerMath`'s list |
-| Orb opens but no voice | provider is not Gemini (see section 6), `SaifAutomation.liveError`, `JarvisConversationService` connection status |
 | Voice changed in Settings but not in the video | `utils/SaifVoice` (single source), `BrandKit.narrationVoice`, `DeviceSpeech` |
 | Voice cut / choppy | `VoiceGroups`, `retimeGrouped`, `NarrationPolish`, SFX ducking in `TimelineAssembler` |
 | "Scene planning failed … 404" | wrong Gemini model name in settings; change model |
 | Research shallow | `DeepResearch` note in chat; add a Tavily/Brave key for better search |
 
 ## 8. Backlog (not done yet)
-- **Provider-agnostic live engine**: a turn-based STT → `AiClient` → TTS path so the orb works without Gemini Live (see section 6).
+- **Live voice extras**: a settings section for the live conversation (silence length, start sound), an on-device model for Hindi, and a streaming audio mode for providers that offer one.
 - Wire `SaifMemoryCore` into the app builder and the phone agent too (chat, live and video are done), and surface `perFeatureCounts()` in the AI MEMORY dialog.
 - Cloud TTS option for smoother voice; per-word timing alignment between narration and captions.
 - Let the Director ask the user for a Telegram sync from the chat (button) and show catalog size.
@@ -115,6 +112,20 @@ and a **video studio** (timeline editor: lanes CODE, VIDEO, VISUAL, TEXT, VOICE,
 - Real instrumented tests for export and TTS on a device.
 
 ## 9. Change log (newest first)
+
+### 2026-11-13 - live voice rewritten as SAIF AI's own code; third-party module removed
+- Owner's request: remove all Tech GPTx code, licence and credits and put own code in its place, without losing
+  the feature. The Gradle module `automation/` (`com.jarvis.assistant`, 238 files) and `licenses/TAMCL-1.0.txt`
+  are deleted.
+- New own files: `live/SaifLive.kt`, `live/SaifLiveService.kt`, `live/LiveScreenCapture.kt`, `live/LivePrompt.kt`,
+  `live/LiveModels.kt`, `stt/OfflineSpeech.kt`, `stt/OfflineSpeechFiles.kt`; tests `live/LiveRulesTest.kt`,
+  `stt/OfflineSpeechFilesTest.kt`.
+- Changed: `live/LiveTurnLoop.kt` (own types instead of the module's), `ui/components/SaifLiveOrb.kt` (the orb is
+  drawn with Compose Canvas instead of the module's web page), `SaifLiveModeSheet.kt`, `SaifAiApp.kt`,
+  `SaifApplication.kt`, `MainActivity.kt`, `SttRouter.kt`, `ProviderSettingsManager.kt`, the manifest (service
+  `com.example.live.SaifLiveService`), `app/build.gradle.kts` (Vosk and JNA are now direct dependencies).
+- Deleted: `ui/components/SaifLiveSettingsSection.kt` (never shown on any screen).
+- Details and the rules that follow from it: last section of this file.
 
 ### Round 11 - SAIF ADVANCE EDITING ENGINE entry (+ sheet)
 - `NewProjectSheet.kt`: new `NewProjectChoice.ADVANCE_ENGINE` row "SAIF ADVANCE EDITING ENGINE" (after Blank project).
@@ -273,37 +284,47 @@ Warnings cleaned (compile-safe, only icons the CI log named): `Icons.Filled/Defa
 
 ## Credits and licences: never remove them
 
-SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, the JARVIS AI Android
-assistant by Tech GPTx, Termux, PRoot and more). An earlier round removed the Tech GPTx credit; that broke its
-licence and had to be undone. Rules for every agent and every change:
+SAIF AI is GPL-3.0-or-later and is built on other people's code (AntiGem by Santosh Kurmi, Termux, PRoot and more).
+Rules for every agent and every change:
 
 - Do not delete or reword away any name, copyright line or licence in `LICENSE`, `THIRD_PARTY_NOTICES.md`,
-  `licenses/`, `automation/LICENSE`, `automation/README.md`, `automation/.../security/DeveloperInfo.kt`,
-  `automation/.../security/SecurityManager.kt`, the module's `AndroidManifest.xml` comment, the creator links
-  (Tech GPTx's Instagram and YouTube) or the screen footers. Do not claim that any third-party code is
-  "100% owned" by SAIF AI.
+  `licenses/` or the settings footers. Do not claim that any third-party code is "100% owned" by SAIF AI.
 - Do not change the project to a proprietary or "all rights reserved" licence. It contains GPL code.
 - When you add a library or copy code, add it to `THIRD_PARTY_NOTICES.md` with its licence, then copy the file to
   `app/src/main/assets/legal/` (the unit test `LegalNoticesBundleTest` fails if the copies differ or a credit is gone).
-- New code must be under a licence that fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar).
+- Only add code whose licence fits the GPL (GPL, LGPL, Apache-2.0, MIT, BSD and similar). Code under a licence
+  with extra conditions (for example a compulsory credit in videos) must not be added.
 - The CI build prints the libraries that are really packaged in the APK as check annotations named
   "APK libraries i/n" (last step of `.github/workflows/build-apk.yml`). When dependencies change, compare
   section 3 of `THIRD_PARTY_NOTICES.md` with that list.
 - The assistant's spoken or typed answer to "who made you?" is the product persona (SAIF AI, see
   `SaifIdentity.RULE`). It is separate from these legal credits and must not be used as a reason to remove them.
 
-### The `automation/` module stays, with its licence and its credits (owner's decision, 2026-11-12)
+### The live voice is SAIF AI's own code; the third-party `automation/` module is gone (2026-11-13)
 
-The live voice and phone-automation module `automation/` (Java package `com.jarvis.assistant`) is the JARVIS AI
-Android assistant by Tech GPTx under TAMCL v1.0. The owner wants the app to keep working with it (purple live-voice
-button, orb, screen share, on-device speech fallback) and wants its licence and credits kept.
+Until build #10 the live voice conversation (purple mic) ran on a third-party module, `automation/` (Java package
+`com.jarvis.assistant`, the "JARVIS AI Android assistant" by Tech GPTx, TAMCL v1.0). The owner had all of its code,
+its licence and its credits removed and replaced by SAIF AI's own code, because that licence does not fit the GPL.
 
-- Builds #6 to #8 were made without the module because a request of the owner was misread as "remove the code".
-  Build #10 has the module, `licenses/TAMCL-1.0.txt` and every credit again, and names the author again in the
-  places inside the module where an earlier edit had written "SAIF AI" instead. Do not remove them again.
-  (There is no build #9: a new push cancels the build that is still running for the same branch, see
-  `concurrency` in `.github/workflows/build-apk.yml`.)
-- If an instruction about this module, its licence or its credits is unclear, ask the owner before deleting
-  anything. Removing a feature is never the way to settle a credit or licence question.
-- The mismatch between the GPL and TAMCL v1.0 is described in section 8 of `THIRD_PARTY_NOTICES.md`. Keeping the
-  module is the owner's decision; the open point is settled by a written permission from Tech GPTx, not by code.
+- Do not re-add the module and do not copy or adapt code from that project (github.com/techgptx/Playlist).
+  `LegalNoticesBundleTest` fails when `com.jarvis.assistant`, `SaifAutomation` or `JarvisApp` is used again.
+  Do not add credits or a licence file for it either: nothing of it is in the app.
+- The own engine, all in `app/src/main/java/com/example/`:
+  - `live/SaifLive.kt` - the state and the functions the screens use (start, stop, mute, interrupt, screen share).
+  - `live/SaifLiveService.kt` - foreground service (microphone; also mediaProjection while the screen is shared),
+    notification, wake lock, 30-minute idle end, memory learning after each turn.
+  - `live/LiveTurnLoop.kt` - one conversation: listen, speech-to-text, answer (phone agent, coding bridge or the
+    provider), text-to-speech, barge-in. It existed before and was only freed from the module's types.
+  - `live/LiveScreenCapture.kt` - shared-screen pictures (reduced size, one per second, JPEG, never stored).
+  - `live/LivePrompt.kt`, `live/LiveModels.kt` - the spoken-answer prompt and the shared types and rules.
+  - `stt/OfflineSpeech.kt`, `stt/OfflineSpeechFiles.kt` - on-device speech recognition with the Vosk library
+    (Apache-2.0); the model is downloaded once into `files/vosk-model`.
+  - `ui/components/SaifLiveOrb.kt` - the orb, drawn with Compose Canvas, and the live conversation screen.
+- Things the old module had that SAIF AI never showed, and that therefore were not rebuilt: its own settings
+  screens, voice enrolment (owner voice lock), overlay avatars, its hands-free standby, its persona modes and its
+  direct Gemini-audio connection. `SaifLiveSettingsSection.kt` was never called from any screen and was deleted.
+- Not verified on a phone: the new code is compiled and unit-tested by CI only. Check on a device after changes:
+  start and stop from the purple mic, barge-in, mute, screen share on Android 14+, a provider without
+  speech-to-text (model download), and that the session ends when the app account signs out.
+- Older text in this file and in `docs/ROUND_*_REPORT.md` that mentions `SaifAutomation`,
+  `JarvisConversationService` or `orb.html` describes code that no longer exists.

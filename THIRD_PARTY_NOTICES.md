@@ -7,7 +7,6 @@ later version** (`GPL-3.0-or-later`), the same licence as the project it is buil
     SAIF AI
     Copyright (C) 2026 SAIF AI and contributors
     Copyright (C) 2026 Santosh Kurmi (AntiGem, on which SAIF AI is based)
-    Copyright (c) 2026 Tech GPTx / Rehaan (JARVIS AI Android assistant, voice automation module)
 
     This program is free software: you can redistribute it and/or modify it under the terms of the GNU General
     Public License as published by the Free Software Foundation, either version 3 of the License, or (at your
@@ -36,24 +35,9 @@ The same notices are inside the app: **Settings > Open-source licences & credits
   `app/src/standard/assets/`, `agy_ide_bridge/`, `proto_generator/`, `extensions/`, `extension_docs/`, `scripts/`
   and parts of `docs/` (all present in the AntiGem repository), and `termux-daemon/` (named as AntiGem code by
   the earlier notice of this repository).
-- Changes: SAIF AI renamed and restyled the interface, added its own sign-in, chat home screen, video studio,
-  API-key provider, cloud build templates and storage clean-up, and changed many files. The modified files are
-  distributed under the same GPL.
-
-### JARVIS AI Android assistant - by Tech GPTx (Rehaan)
-- Project: <https://github.com/techgptx/Playlist> ("JARVIS AI Voice Assistant for Android, Parts 1-7")
-- Licence: **TECH GPTx Source Code & Content Creator License (TAMCL v1.0)**. Copyright (c) 2026 Tech GPTx
-  (Tech GP Tax) / Rehaan. All Rights Reserved. Full text: [`automation/LICENSE`](automation/LICENSE) and
-  [`licenses/TAMCL-1.0.txt`](licenses/TAMCL-1.0.txt).
-- Used for: the live voice and phone-automation engine (purple microphone), the Gradle module `automation/`
-  (Java package `com.jarvis.assistant`).
-- Changes: turned into a library module, connected to SAIF AI's settings and theme, renamed in the interface to
-  "SAIF AI Automation" (the assistant and its personas are presented as SAIF AI), Room moved from kapt to KSP,
-  stand-alone licence checks switched off. The author's credit is kept in the module's code, manifest and
-  screens.
-- TAMCL v1.0 requires that this credit is **not removed** from the code, the manifests, the interface or the
-  documentation, and that **videos or posts that show or use this code credit Tech GPTx** (spoken credit, a credit
-  in the first lines of the description with the link above, and an on-screen credit). See section 7.
+- Changes: SAIF AI renamed and restyled the interface, added its own sign-in, chat home screen, live voice
+  conversation, video studio, API-key provider, cloud build templates and storage clean-up, and changed many
+  files. The modified files are distributed under the same GPL.
 
 ### Termux terminal view and terminal emulator
 - Project: <https://github.com/termux/termux-app> (libraries `terminal-view` and `terminal-emulator`), based on
@@ -89,8 +73,7 @@ prints that list; see "List the libraries packaged in the APK" in `.github/workf
 
 | Library | Licence | Copyright / project |
 |---|---|---|
-| AndroidX / Jetpack (core, activity, lifecycle, Compose, Material 3, navigation3, Room, DataStore, WorkManager, WebKit, Media3, security-crypto, swiperefreshlayout, appcompat, constraintlayout, recyclerview, and the AndroidX libraries these pull in) | Apache-2.0 | The Android Open Source Project |
-| Material Components for Android (used by the voice automation module) | Apache-2.0 | Google LLC |
+| AndroidX / Jetpack (core, activity, lifecycle, Compose, Material 3, navigation3, Room, DataStore, WorkManager, WebKit, Media3, security-crypto, swiperefreshlayout, and the AndroidX libraries these pull in) | Apache-2.0 | The Android Open Source Project |
 | Kotlin standard library, kotlinx.coroutines, kotlinx.serialization, JetBrains annotations | Apache-2.0 | JetBrains s.r.o. and contributors |
 | OkHttp, Okio, Wire | Apache-2.0 | Square, Inc. |
 | Coil (coil-compose, coil-svg) | Apache-2.0 | Coil Contributors |
@@ -104,7 +87,7 @@ prints that list; see "List the libraries packaged in the APK" in `.github/workf
 | Gson, Guava, apksig | Apache-2.0 | Google LLC / The Android Open Source Project |
 | Apache Commons Compress, Commons IO, Commons Codec, Commons Lang | Apache-2.0 | The Apache Software Foundation |
 | Markwon (core, inline-parser, ext-latex) | Apache-2.0 | Dimitry Ivanov |
-| Vosk Android (offline speech recognition, with Kaldi; used by the voice automation module) | Apache-2.0 | Alpha Cephei Inc. |
+| Vosk Android (speech recognition on the phone, with Kaldi; used by SAIF AI's voice typing and live voice) | Apache-2.0 | Alpha Cephei Inc. |
 | SnakeYAML Engine (used by sora-editor) | Apache-2.0 | SnakeYAML contributors |
 | JNA (Java Native Access; used by Vosk) | Apache-2.0 **or** LGPL-2.1-or-later (used here under Apache-2.0) | Timothy Wall and contributors |
 | Annotation-only libraries: JSR-305, Error Prone annotations, J2ObjC annotations, JSpecify, javax.inject, Android annotations | Apache-2.0 | their respective authors (Google LLC and others) |
@@ -126,7 +109,7 @@ tasks, fido), Google Identity (`googleid`), Play Integrity and reCAPTCHA. See se
 Licence texts: `licenses/Apache-2.0.txt`, `licenses/LGPL-2.1.txt`, `licenses/EPL-2.0.txt`, `licenses/GPL-2.0.txt`,
 `licenses/MIT.txt`, `licenses/BSD-2-Clause.txt`, `licenses/BSD-3-Clause.txt`.
 
-The exact versions are in `gradle/libs.versions.toml`, `app/build.gradle.kts` and `automation/build.gradle.kts`.
+The exact versions are in `gradle/libs.versions.toml` and `app/build.gradle.kts`.
 Libraries that those libraries pull in themselves keep their own licences.
 
 ---
@@ -157,8 +140,8 @@ with SAIF AI and stay under their own licences and terms:
 - The AntiGem bootstrap archive, from <https://github.com/Santoshkurmi/antigem> releases.
 - Google Antigravity CLI, Claude Code, OpenCode and other AI tools that the user chooses to install: each is the
   product of its owner and is used under that owner's terms with the user's own account or API key.
-- Vosk speech models (Apache-2.0, Alpha Cephei Inc.); three.js r128 (MIT, three.js authors) loaded from cdnjs for
-  the 3D orb.
+- The English speech model `vosk-model-small-en-us` (Apache-2.0, Alpha Cephei Inc.), downloaded once from
+  <https://alphacephei.com/vosk/models> when on-device speech recognition is first needed.
 - Anything the user or the AI agent installs with `apt`, `npm`, `pip` or similar tools.
 
 The `cloud/` folder holds separate server templates. Their Node.js dependencies and licences are listed in the
@@ -169,7 +152,7 @@ The `cloud/` folder holds separate server templates. Their Node.js dependencies 
 ## 6. Trademarks and affiliation
 
 SAIF AI is an independent project. It is **not affiliated with, endorsed by or sponsored by** Google, Anthropic,
-OpenAI, OpenCode, Arena, Termux, Santosh Kurmi (AntiGem) or Tech GPTx. Antigravity, Gemini, Claude, Claude Code,
+OpenAI, OpenCode, Arena, Termux or Santosh Kurmi (AntiGem). Antigravity, Gemini, Claude, Claude Code,
 ChatGPT, OpenCode and the other product names are trademarks of their owners and are used only to say which tools
 and services the app can work with. The files in `app/src/main/proto/` and `proto_generator/` describe the
 interface of the Antigravity language server so that the app can talk to a copy the user installs and signs in to;
@@ -179,8 +162,8 @@ they are not a Google product and are not licensed by Google.
 
 ## 7. What to do when you share SAIF AI (checklist)
 
-1. **Keep these files with the app and the source:** `LICENSE`, `THIRD_PARTY_NOTICES.md`, the `licenses/` folder
-   and `automation/LICENSE`. Do not remove a name from this file. The copies inside the APK
+1. **Keep these files with the app and the source:** `LICENSE`, `THIRD_PARTY_NOTICES.md` and the `licenses/`
+   folder. Do not remove a name from this file. The copies inside the APK
    (`app/src/main/assets/legal/`) are checked by a unit test, so a build cannot silently drop them.
 2. **Give the source with every APK.** Because of the GPL, everyone who gets the APK must be able to get the
    complete source of that exact version, including your own changes. Publishing the APK from this public
@@ -188,11 +171,7 @@ they are not a Google product and are not licensed by Google.
 3. **Do not put another licence on top.** SAIF AI as a whole cannot be sold or published as closed-source or
    "all rights reserved" software while it contains AntiGem code. You may charge money for it, but the buyer still
    gets the GPL rights and the source.
-4. **Credit Tech GPTx in videos and posts** that show or use the app while the voice automation module is in it:
-   say "Credit to Tech GPTx for the original JARVIS AI Android source code / project", put
-   "Original Source Code & Tutorial by Tech GPTx: https://github.com/techgptx/Playlist" in the first three lines
-   of the description, and show "Tech GPTx" on screen during the demonstration (TAMCL v1.0, section 1).
-5. **Do not use other companies' names or logos** as if the app were theirs (section 6).
+4. **Do not use other companies' names or logos** as if the app were theirs (section 6).
 
 ---
 
@@ -203,23 +182,16 @@ One group could not be re-checked from the build environment, because its Git ho
 licence files of `modernc.org/libc`, `modernc.org/mathutil` and `modernc.org/memory` (section 4). They are
 listed as their authors publish them; `modernc.org/sqlite` was checked.
 
-1. **GPL and TAMCL together.** The GPL does not allow extra conditions on the people who receive the program.
-   TAMCL v1.0 adds one (the compulsory credit in videos). Strictly, the voice automation module therefore does not
-   fit under the GPL that covers the rest of the app. The owner of this app has decided to keep the module, with
-   its licence and every credit. To be fully safe, get a short written permission from Tech GPTx to distribute
-   their module together with this GPL app. Until then, keeping every credit above and following section 7 is the
-   minimum.
-2. **Which builds to share.** Share build #10 or newer. Builds #1 to #3 were made from an upload in which the
-   Tech GPTx credit had been removed: do not share them. Builds #6 to #8 were made without the voice automation
-   module (no live voice). Builds #4, #5 and #9 carry the credit, but a few files and screens inside the module
-   still named SAIF AI in place of Tech GPTx (the module's manifest, its security header, the creator links and
-   two screen footers); that is corrected from build #10 on.
-3. **Google's closed libraries and the GPL.** The sign-in and the app-protection checks use Google libraries
+1. **Older builds.** Builds up to #10 (made before 2026-11-13) either contained a third-party voice-automation
+   module under a different licence, or had no live voice at all. That module is gone: the live voice conversation
+   is now SAIF AI's own code under the GPL. Share only builds newer than #10, and replace older APKs wherever you
+   published them.
+2. **Google's closed libraries and the GPL.** The sign-in and the app-protection checks use Google libraries
    that are not open source (listed at the end of section 3). The GPL has no exception for such libraries, and
    AntiGem itself does not use them. Many GPL apps are published this way, but strictly it is not covered. To be
    fully safe: ask the author of AntiGem for a short written permission to combine his code with these libraries,
    or replace the Google sign-in with open-source code.
-4. **Antigravity.** Using Google Antigravity through this app is subject to Google's terms for the user's own
+3. **Antigravity.** Using Google Antigravity through this app is subject to Google's terms for the user's own
    account. Nothing here grants rights to Google's software or names.
-5. **Keys in the repository.** `app/saif-debug.jks` (debug signing key) and `app/google-services.json` are public
+4. **Keys in the repository.** `app/saif-debug.jks` (debug signing key) and `app/google-services.json` are public
    in this repository. They are for test builds only; use a private key for a real release.

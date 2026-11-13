@@ -23,6 +23,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,21 +33,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jarvis.assistant.SaifAutomation
+import com.example.live.LiveMode
+import com.example.live.SaifLive
 
 /**
- * The two options the purple mic now offers. This is the entry point that replaced the red "+" button: the
- * SAIF AI AUTOMATION engine starts from inside SAIF AI's own live-conversation feature, with SAIF AI's UI.
+ * The two ways to start SAIF AI's live conversation:
  *
- *  • NORMAL       — talk only, exactly like SAIF AI Automation's voice conversation.
- *  • SCREEN SHARE — the engine also looks at the screen and helps with what it sees.
+ *  • NORMAL       — talk only.
+ *  • SCREEN SHARE — SAIF AI also looks at the screen and helps with what it sees.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaifLiveModeSheet(
     isLightMode: Boolean,
     onDismiss: () -> Unit,
-    onNeedScreenCapturePermission: (SaifAutomation.LiveMode) -> Unit
+    onNeedScreenCapturePermission: (LiveMode) -> Unit
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -56,15 +57,16 @@ fun SaifLiveModeSheet(
             Text("SAIF AI LIVE BAATCHEET", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.6.sp)
             Spacer(Modifier.height(4.dp))
             Text(
-                "Talk live with the 3D orb. The voice is SAIF AI's own, and the API comes from your Settings.",
+                "Talk live with SAIF AI. The voice is SAIF AI's own, and the API comes from your Settings.",
                 color = Color(0xFFA8A59B), fontSize = 12.sp
             )
-            // Round 10: show which provider/key the live engine will use — it works with ANY provider
-            // (cloud STT for Groq/OpenAI/Gemini keys, on-device Vosk STT for everyone else).
-            val api = SaifAutomation.currentApi()
-            val ready = api.hasKey || SaifAutomation.hasHostLiveAgent()
+            // Show which provider/key the live engine will use — it works with ANY provider
+            // (cloud STT for Groq/OpenAI/Gemini keys, on-device speech recognition for everyone else).
+            val provider = remember { com.example.data.local.ProviderSettingsManager.loadState() }
+            val hasKey = SaifLive.hasProviderKey()
+            val ready = hasKey || SaifLive.hasConnectedAgent()
             val apiLine = when {
-                api.hasKey -> "Engine: ${api.provider.ifBlank { "auto" }} • ${api.model.ifBlank { "default model" }}"
+                hasKey -> "Engine: ${provider.providerName.ifBlank { "auto" }} • ${provider.activeModel.ifBlank { "default model" }}"
                 ready -> "Connected Antigravity agent"
                 else -> "⚠️ Add a provider API key in Settings, or connect Antigravity."
             }
@@ -73,8 +75,8 @@ fun SaifLiveModeSheet(
             Spacer(Modifier.height(18.dp))
 
             ModeCard(
-                title = SaifAutomation.LiveMode.NORMAL.label,
-                subtitle = SaifAutomation.LiveMode.NORMAL.description,
+                title = LiveMode.NORMAL.label,
+                subtitle = LiveMode.NORMAL.description,
                 icon = Icons.Default.GraphicEq,
                 gradient = listOf(Color(0xFF7C5CE0), Color(0xFF5E43BD))
             ) { startNormal(context, isLightMode, onDismiss) }
@@ -82,23 +84,22 @@ fun SaifLiveModeSheet(
             Spacer(Modifier.height(12.dp))
 
             ModeCard(
-                title = SaifAutomation.LiveMode.SCREEN_SHARE.label,
-                subtitle = SaifAutomation.LiveMode.SCREEN_SHARE.description,
+                title = LiveMode.SCREEN_SHARE.label,
+                subtitle = LiveMode.SCREEN_SHARE.description,
                 icon = Icons.AutoMirrored.Filled.ScreenShare,
                 gradient = listOf(Color(0xFF7C5CE0), Color(0xFF5E43BD))
-            ) { onNeedScreenCapturePermission(SaifAutomation.LiveMode.SCREEN_SHARE) }
+            ) { onNeedScreenCapturePermission(LiveMode.SCREEN_SHARE) }
         }
     }
 }
 
 /** Starts the engine in normal (voice only) mode. Returns true when the session really started. */
-fun startNormal(context: Context, isLightMode: Boolean, onDismiss: () -> Unit): Boolean {
+fun startNormal(context: Context, @Suppress("UNUSED_PARAMETER") isLightMode: Boolean, onDismiss: () -> Unit): Boolean {
     // The legacy wake-word listener can already own AudioRecord on the home screen. Give
     // live voice exclusive access to the mic before the service starts its audio pipeline.
-    val ready = com.jarvis.assistant.util.PermissionHelper.hasLiveConversationPermission(context) &&
-        (SaifAutomation.currentApi().hasKey || SaifAutomation.hasHostLiveAgent())
+    val ready = SaifLive.hasMicPermission(context) && SaifLive.canAnswer()
     if (ready) com.example.util.WakeWordAudioDetector.stop()
-    val ok = SaifAutomation.startLive(context, SaifAutomation.LiveMode.NORMAL, isLightMode)
+    val ok = SaifLive.startLive(context, LiveMode.NORMAL)
     if (ok) SaifLiveSession.isHostPanelOpen = true
     else if (ready && com.example.util.WakeWordManager.isWakeWordEnabledFlow.value &&
         com.example.util.WakeWordManager.isAppInForeground) {

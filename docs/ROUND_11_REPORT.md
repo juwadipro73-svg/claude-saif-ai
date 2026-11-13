@@ -1,3 +1,5 @@
+> Note (2026-11-13): the live-voice automation module described in this report was later removed from the app, with its licence, and replaced by SAIF AI's own live voice code. See the last section of `CLAUDE.md`.
+
 # Round 11 report — build on GitHub + SAIF Agent autopilot + any-API power
 
 ## 1. GitHub build (done from this session)

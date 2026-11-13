@@ -178,8 +178,9 @@ object ProviderSettingsManager {
             put("allowFallbackToOtherProviders", state.allowFallbackToOtherProviders)
         }
         prefs?.edit()?.putString(KEY_STATE, json.toString())?.apply()
-        // Keep SAIF AI AUTOMATION in sync: running voice sessions reconnect with the new key / model.
-        runCatching { com.jarvis.assistant.SaifAutomation.onHostApiChanged() }
+        // A live voice session reads the key and the model again on its next turn; an old "no key" message is
+        // no longer true.
+        runCatching { com.example.live.SaifLive.clearLiveError() }
     }
 
     fun getActiveProvider(): String = loadState().providerName

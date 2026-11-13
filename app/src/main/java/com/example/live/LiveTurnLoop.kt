@@ -21,11 +21,6 @@ import com.example.stt.AudioPrep
 import com.example.stt.SttProfile
 import com.example.stt.SttRouter
 import com.example.utils.TTSManager
-import com.jarvis.assistant.JarvisApp
-import com.jarvis.assistant.background.JarvisLiveError
-import com.jarvis.assistant.data.model.ConversationState
-import com.jarvis.assistant.live.HostLiveTurnListener
-import com.jarvis.assistant.live.HostLiveTurnLoop
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -48,11 +43,16 @@ import kotlin.coroutines.resume
 /** A turn-based live transport. Its service owner, not the UI, owns the microphone and lifetime. */
 enum class LiveTurnState { IDLE, LISTENING, TRANSCRIBING, THINKING, SPEAKING }
 
+/**
+ * One live conversation: listen until the user stops speaking, turn the speech into text, get the answer (phone
+ * task, coding request or a reply of the AI provider), speak it, and listen again. Speaking can be interrupted by
+ * talking. [SaifLiveService] creates it, starts it and stops it.
+ */
 class LiveTurnLoop(
     context: Context,
     private val systemPrompt: String,
-    private val listener: HostLiveTurnListener
-) : HostLiveTurnLoop {
+    private val listener: LiveTurnListener
+) {
     private val context = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val gate = VadGate(sampleRate = 16000, minimumBargeInRms = 700.0)
@@ -77,10 +77,10 @@ class LiveTurnLoop(
     val assistantTranscript: StateFlow<String> = _assistantTranscript.asStateFlow()
     private val _audioLevel = MutableStateFlow(0f)
     val audioLevel: StateFlow<Float> = _audioLevel.asStateFlow()
-    private val _liveError = MutableStateFlow<JarvisLiveError?>(null)
-    val liveError: StateFlow<JarvisLiveError?> = _liveError.asStateFlow()
+    private val _liveError = MutableStateFlow<LiveError?>(null)
+    val liveError: StateFlow<LiveError?> = _liveError.asStateFlow()
 
-    override fun start(): Boolean {
+    fun start(): Boolean {
         if (_isSessionOn.value) return true
         TTSManager.init(context)
         PhoneAgentRuntime.init(context)
@@ -103,7 +103,7 @@ class LiveTurnLoop(
         return true
     }
 
-    override fun stop() {
+    fun stop() {
         _isSessionOn.value = false
         generation.incrementAndGet()
         synchronized(jobLock) { work?.cancel(); work = null }
@@ -118,13 +118,13 @@ class LiveTurnLoop(
         setLevel(0f)
     }
 
-    override fun setMicMuted(muted: Boolean) {
+    fun setMicMuted(muted: Boolean) {
         this.muted = muted
         synchronized(gateLock) { gate.reset() }
         if (muted) setLevel(0f)
     }
 
-    override fun interrupt() {
+    fun interrupt() {
         if (!_isSessionOn.value) return
         cancelCurrentTurn()
         synchronized(gateLock) { gate.reset() }
@@ -132,7 +132,7 @@ class LiveTurnLoop(
         setState(LiveTurnState.LISTENING)
     }
 
-    override fun sendText(text: String) {
+    fun sendText(text: String) {
         val clean = text.trim()
         if (!_isSessionOn.value || clean.isEmpty()) return
         cancelCurrentTurn()
@@ -140,10 +140,9 @@ class LiveTurnLoop(
         launchWork { token -> respond(clean, token) }
     }
 
-    override fun onScreenFrame(jpeg: ByteArray?) {
+    fun onScreenFrame(jpeg: ByteArray?) {
         // Only the latest opt-in screen frame is retained. A null clears it immediately on stop.
-        screenFrame = if (jpeg != null && _isSessionOn.value &&
-            com.jarvis.assistant.vision.ScreenCaptureManager.getInstance().isSharing.value) jpeg.copyOf() else null
+        screenFrame = if (jpeg != null && _isSessionOn.value && SaifLive.isScreenSharing.value) jpeg.copyOf() else null
     }
 
     private fun onFrame(frame: ByteArray) {
@@ -217,14 +216,6 @@ class LiveTurnLoop(
 
     private suspend fun transcribeAndRespond(pcm: ByteArray, duration: Long, snr: Double, ratio: Float, token: Long) {
         setState(LiveTurnState.TRANSCRIBING)
-        val prefs = JarvisApp.instance.preferences
-        if (prefs.isOwnerVoiceEnabled && prefs.hasOwnerVoiceProfile()) {
-            val match = com.jarvis.assistant.audio.OwnerVoiceManager.verifySpeakerAudio(pcm, prefs)
-            if (!match.isMatch) {
-                report("VOICE LOCK", if (match.hasExtractedVector) "Voice did not match the enrolled owner." else "Voice lock could not verify this recording; wait for the offline voice model or speak again.", "VOICE_NOT_VERIFIED")
-                return
-            }
-        }
         val wav = AudioPrep.pcmToWav(AudioPrep.processPcm(pcm, 16000), 16000)
         val result = SttRouter.transcribe(
             wavBytes = wav, profile = SttProfile.LIVE_COMMAND, context = context,
@@ -287,7 +278,7 @@ class LiveTurnLoop(
             else report("AI CONNECTION REQUIRED", "Sign in to the SAIF AI server or add a provider API key in Settings.", "API_KEY_MISSING")
             return
         }
-        val frame = if (com.jarvis.assistant.vision.ScreenCaptureManager.getInstance().isSharing.value) screenFrame else null
+        val frame = if (SaifLive.isScreenSharing.value) screenFrame else null
         val profile = ProviderProfile.detectProviderFromKey(key, settings.providerName)
         // Round 10: screen share must work with ANY provider. When the model cannot see images, the
         // screen is described as text via the accessibility service instead of failing the turn.
@@ -419,10 +410,10 @@ class LiveTurnLoop(
     private fun setState(state: LiveTurnState) {
         _conversationState.value = state
         listener.onState(when (state) {
-            LiveTurnState.IDLE -> ConversationState.IDLE
-            LiveTurnState.LISTENING -> ConversationState.LISTENING
-            LiveTurnState.TRANSCRIBING, LiveTurnState.THINKING -> ConversationState.THINKING
-            LiveTurnState.SPEAKING -> ConversationState.SPEAKING
+            LiveTurnState.IDLE -> LiveOrbState.IDLE
+            LiveTurnState.LISTENING -> LiveOrbState.LISTENING
+            LiveTurnState.TRANSCRIBING, LiveTurnState.THINKING -> LiveOrbState.THINKING
+            LiveTurnState.SPEAKING -> LiveOrbState.SPEAKING
         })
     }
 
@@ -432,7 +423,7 @@ class LiveTurnLoop(
     }
 
     private fun report(title: String, message: String, code: String) {
-        val error = JarvisLiveError(title, message, code, "RETRY")
+        val error = LiveError(title, message, code, "RETRY")
         _liveError.value = error
         listener.onError(error)
     }

@@ -89,3 +89,11 @@
 }
 # WorkManager's Room database is created by reflection; R8 full mode strips its no-arg constructor.
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
+
+# On-device speech recognition (com.example.stt.OfflineSpeech).
+# The Vosk library reaches its native code through JNA, and JNA finds classes, fields and methods by name at run
+# time, so neither may be renamed or removed. JNA also mentions desktop-only classes that Android does not have.
+-keep class org.vosk.** { *; }
+-keep class com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }
+-dontwarn java.awt.**

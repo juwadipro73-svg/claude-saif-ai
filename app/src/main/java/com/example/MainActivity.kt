@@ -160,8 +160,8 @@ class MainActivity : ComponentActivity() {
                     com.example.gemini.data.remote.SavedAiSkills.bind(applicationContext, null)
                     com.example.cloud.SaifAiCloudManager.onSignedOut()
                     com.example.gemini.data.local.AuthenticatedWorkspace.onSignedOut()
-                    if (com.jarvis.assistant.SaifAutomation.isLiveRunning.value)
-                        com.jarvis.assistant.SaifAutomation.stopLive(applicationContext)
+                    if (com.example.live.SaifLive.isLiveRunning.value)
+                        com.example.live.SaifLive.stopLive(applicationContext)
                 }
             }
             val globalConfig by com.example.data.local.AdminConfigManager.globalConfig.collectAsState()

@@ -45,5 +45,4 @@ plugins {
 
 rootProject.name = "SAIF AI"
 include(":app")
-include(":automation")
 include(":apprunner")

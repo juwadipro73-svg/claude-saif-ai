@@ -6,8 +6,12 @@ import android.content.Context
 import android.os.Build
 import android.os.PowerManager
 import androidx.test.core.app.ApplicationProvider
-import com.jarvis.assistant.util.PermissionHelper
+import com.example.live.LiveError
+import com.example.live.LiveStartCheck
+import com.example.live.SaifLive
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -25,11 +29,13 @@ class LiveConversationPermissionTest {
         shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
         shadowOf(app).denyPermissions(Manifest.permission.POST_NOTIFICATIONS)
 
-        assertFalse(PermissionHelper.hasBatteryOptimizationPermission(app))
-        assertFalse(PermissionHelper.hasAllRequiredPermissions(app))
-        assertTrue(PermissionHelper.hasLiveConversationPermission(app))
+        // The microphone is enough: no battery exemption and no notification permission is asked for.
+        assertTrue(SaifLive.hasMicPermission(app))
+        assertNull(LiveStartCheck.problem(SaifLive.hasMicPermission(app), hasProviderKey = true, agentConnected = false))
 
         shadowOf(app).denyPermissions(Manifest.permission.RECORD_AUDIO)
-        assertFalse(PermissionHelper.hasLiveConversationPermission(app))
+        assertFalse(SaifLive.hasMicPermission(app))
+        val problem = LiveStartCheck.problem(SaifLive.hasMicPermission(app), hasProviderKey = true, agentConnected = false)
+        assertEquals(LiveError.CODE_NO_MICROPHONE, problem?.errorCode)
     }
 }

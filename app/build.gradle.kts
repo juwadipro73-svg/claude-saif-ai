@@ -252,7 +252,10 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
   // ---- SAIF AI core (Room, Firebase, Media3, Automation module) ----
-  implementation(project(":automation"))
+  // On-device speech recognition (com.example.stt.OfflineSpeech), for AI providers without speech-to-text.
+  // Vosk talks to its native library through JNA; both are Apache-2.0.
+  implementation("net.java.dev.jna:jna:5.13.0@aar")
+  implementation("com.alphacephei:vosk-android:0.3.75@aar")
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.room.ktx)
   ksp(libs.androidx.room.compiler)

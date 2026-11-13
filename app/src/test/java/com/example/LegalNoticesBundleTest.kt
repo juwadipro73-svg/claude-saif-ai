@@ -20,7 +20,7 @@ class LegalNoticesBundleTest {
         assertEquals(file("LICENSE").readText(), file("$bundled/LICENSE").readText())
         assertEquals(file("THIRD_PARTY_NOTICES.md").readText(), file("$bundled/THIRD_PARTY_NOTICES.md").readText())
         val texts = file("licenses").listFiles { f -> f.isFile }!!.sortedBy { it.name }
-        assertTrue("licence texts", texts.size >= 9)
+        assertTrue("licence texts", texts.size >= 8)
         texts.forEach { text ->
             assertEquals(text.name, text.readText(), file("$bundled/licenses/${text.name}").readText())
         }
@@ -34,7 +34,6 @@ class LegalNoticesBundleTest {
         }
         assertEquals(SaifLegalNotices.CREDITS_PAGE, SaifLegalNotices.PAGES.first().second)
         assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("Santosh Kurmi"))
-        assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("Tech GPTx"))
         assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("NO WARRANTY"))
     }
 
@@ -54,12 +53,12 @@ class LegalNoticesBundleTest {
         val notices = file("THIRD_PARTY_NOTICES.md").readText()
         listOf(
             "Santosh Kurmi", "https://github.com/Santoshkurmi/antigem",
-            "Tech GPTx", "https://github.com/techgptx/Playlist", "TAMCL v1.0",
             "termux/termux-app", "Jack Palevich",
             "PRoot", "STMicroelectronics", "talloc", "GNU C Library",
             "sora-editor", "Rosemoe", "JLaTeXMath", "JSch", "jsoup", "Jonathan Hedley",
-            "Vosk", "Alpha Cephei", "OkHttp", "Coil", "Markwon", "Apache Commons Compress", "JNA",
-            "Material Components for Android",
+            "OkHttp", "Coil", "Markwon", "Apache Commons Compress",
+            // on-device speech recognition of SAIF AI's own voice code
+            "Vosk", "Alpha Cephei", "JNA", "vosk-model-small-en-us",
             // found in the list of libraries that the build really packages (build #7)
             "AndroidSVG", "Accompanist", "gRPC-Java", "Protocol Buffers", "PerfMark", "Tink", "Guava",
             "Commons IO", "Commons Codec", "Commons Lang", "Checker Framework", "Firebase Authentication",
@@ -68,52 +67,54 @@ class LegalNoticesBundleTest {
         ).forEach { name -> assertTrue("credit missing: $name", notices.contains(name)) }
     }
 
-    @Test fun theVoiceModuleKeepsItsAuthorsCredit() {
-        // TAMCL v1.0: the Tech GPTx attribution may not be removed from code, interface or documentation.
-        assertEquals(file("automation/LICENSE").readText(), file("licenses/TAMCL-1.0.txt").readText())
-        assertTrue(file("automation/LICENSE").readText().contains("Copyright (c) 2026 Tech GPTx"))
-        val info = file("automation/src/main/java/com/jarvis/assistant/security/DeveloperInfo.kt").readText()
-        assertTrue(info.contains("const val DEVELOPER_NAME      = \"Tech GPTx\""))
-        assertTrue(info.contains("https://github.com/techgptx/Playlist"))
-        assertTrue(info.contains("TAMCL v1.0"))
-        assertFalse(info.contains("No external credits"))
-        val readme = file("automation/README.md").readText()
-        assertTrue(readme.contains("Tech GPTx"))
-        assertFalse(readme.contains("Owned and credited 100% to SAIF AI"))
-        val footer = file("automation/src/main/res/layout/fragment_settings.xml").readText()
-        assertTrue(footer.contains("Built on JARVIS Android Assistant by Tech GPTx"))
-        val prompt = file("automation/src/main/java/com/jarvis/assistant/util/PromptGenerator.kt").readText()
-        assertTrue(prompt.contains("JARVIS AI Android assistant by Tech GPTx"))
-        // Its licence is one of the pages of the licence screen inside the app, and the short notice names it.
-        assertTrue(SaifLegalNotices.PAGES.any { it.second == "licenses/TAMCL-1.0.txt" })
-        assertTrue(SaifLegalNotices.SHORT_NOTICE.contains("TAMCL v1.0"))
+    @Test fun theRemovedVoiceModuleIsCompletelyGone() {
+        // The owner had the third-party voice-automation module (Gradle module "automation", Java package
+        // com.jarvis.assistant) taken out, with its licence and credits, and replaced by SAIF AI's own live voice
+        // code (com.example.live). Its licence adds conditions that do not fit the GPL, so neither the module nor
+        // code copied from it may come back.
+        assertFalse(file("automation").exists())
+        assertFalse(file("licenses/TAMCL-1.0.txt").exists())
+        assertFalse(file("$bundled/licenses/TAMCL-1.0.txt").exists())
+        assertFalse(file("settings.gradle.kts").readText().contains("automation"))
+        assertFalse(file("app/build.gradle.kts").readText().contains(":automation"))
+        assertFalse(SaifLegalNotices.PAGES.any { it.second.contains("TAMCL") })
+
+        val leftovers = listOf("app/src/main", "app/src/standard", "app/src/termux", "apprunner/src")
+            .map { file(it) }.filter { it.isDirectory }
+            .flatMap { dir -> dir.walkTopDown().filter { it.isFile && it.extension in setOf("kt", "java", "xml", "html") }.toList() }
+            .filter { source ->
+                val text = source.readText()
+                text.contains("com.jarvis.assistant") || text.contains("SaifAutomation") || text.contains("JarvisApp")
+            }
+            .map { it.path }
+        assertEquals("files that still use the removed module", emptyList<String>(), leftovers)
+
+        // Nothing of it is left to credit, so the notices and the app's licence screen no longer name it.
+        listOf("THIRD_PARTY_NOTICES.md", "README.md").forEach { name ->
+            val text = file(name).readText()
+            assertFalse(name, text.contains("TAMCL"))
+            assertFalse(name, text.contains("techgptx", ignoreCase = true))
+            assertFalse(name, text.contains("Tech GPTx", ignoreCase = true))
+        }
+        assertFalse(SaifLegalNotices.SHORT_NOTICE.contains("Tech GPTx", ignoreCase = true))
     }
 
-    @Test fun theVoiceModuleNamesItsAuthorWhereTheOriginalDid() {
-        // An earlier edit had put "SAIF AI" in place of the author in more files of the module: the security
-        // header, the manifest, the creator links and two screen footers. Those credits are back and must stay.
-        val module = "automation/src/main"
-        val security = file("$module/java/com/jarvis/assistant/security/SecurityManager.kt").readText()
-        assertTrue(security.contains("Developer       : Tech GPTx"))
-        assertTrue(security.contains("https://github.com/techgptx/Playlist"))
-        assertTrue(file("$module/AndroidManifest.xml").readText().contains("JARVIS AI Android assistant by Tech GPTx"))
-        assertTrue(file("$module/res/layout/activity_hands_free.xml").readText().contains("@techgptx.ai"))
-        listOf("activity_hands_free.xml", "activity_privacy_shield.xml").forEach { layout ->
-            assertTrue(layout, file("$module/res/layout/$layout").readText().contains("Built on JARVIS by Tech GPTx"))
+    @Test fun theLiveVoiceIsSaifAisOwnCode() {
+        // The replacement lives in the app itself and carries SAIF AI's own licence header.
+        val live = "app/src/main/java/com/example"
+        listOf(
+            "$live/live/SaifLive.kt", "$live/live/SaifLiveService.kt", "$live/live/LiveScreenCapture.kt",
+            "$live/live/LivePrompt.kt", "$live/live/LiveModels.kt",
+            "$live/stt/OfflineSpeech.kt", "$live/stt/OfflineSpeechFiles.kt"
+        ).forEach { path ->
+            val text = file(path).readText()
+            assertTrue(path, text.contains("SPDX-License-Identifier: GPL-3.0-or-later"))
+            assertTrue(path, text.contains("Copyright (C) 2026 SAIF AI contributors"))
         }
-        listOf("HandsFreeActivity.kt", "PrivacyShieldActivity.kt", "SettingsFragment.kt").forEach { screen ->
-            val code = file("$module/java/com/jarvis/assistant/ui/settings/$screen").readText()
-            assertTrue(screen, code.contains("https://www.instagram.com/techgptx.ai"))
-        }
-
-        // No file of the module may claim it for SAIF AI alone again.
-        val falseClaims = listOf("100% owned and credited to SAIF AI", "all rights with SAIF AI", "No external credits")
-        val moduleFiles = file("automation/src").walkTopDown()
-            .filter { it.isFile && it.extension in setOf("kt", "xml", "html") }.toList() +
-            listOf(file("automation/README.md"), file("automation/build.gradle.kts"))
-        val wrong = moduleFiles
-            .filter { source -> val text = source.readText(); falseClaims.any { claim -> text.contains(claim) } }
-            .map { it.path }
-        assertEquals("files that claim the module for SAIF AI alone", emptyList<String>(), wrong)
+        // The service that owns the microphone is declared, and may capture the screen only as a second type.
+        val manifest = file("app/src/main/AndroidManifest.xml").readText()
+        assertTrue(manifest.contains("com.example.live.SaifLiveService"))
+        assertTrue(manifest.contains("android:foregroundServiceType=\"microphone|mediaProjection\""))
+        assertTrue(manifest.contains("android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"))
     }
 }
