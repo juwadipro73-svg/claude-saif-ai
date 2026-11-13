@@ -34,11 +34,19 @@ object ChatFeedCache {
     }
 }
 
-class SaifSharedChatViewModel(application: Application) : ViewModel() {
-    val isAuthBusy: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
-    val isNetworkConnectedState: StateFlow<Boolean> = MutableStateFlow(true).asStateFlow()
-    val authFeedbackMessage: StateFlow<CharSequence> = MutableStateFlow<CharSequence>("").asStateFlow()
+class SaifSharedChatViewModel(private val application: Application) : ViewModel() {
+    val isAuthBusy = MutableStateFlow(false)
+    val isNetworkConnectedState = MutableStateFlow(true)
+    val authFeedbackMessage = MutableStateFlow<CharSequence>("")
+    val showProviderSetup = MutableStateFlow(false)
+    fun loginToAgyHub(force: Boolean = false) { showProviderSetup.value = true }
+    fun retryConnections() {
+        val cm = application.getSystemService(android.net.ConnectivityManager::class.java)
+        val caps = cm.getNetworkCapabilities(cm.activeNetwork)
+        isNetworkConnectedState.value = caps?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+    }
 }
+typealias ChatViewModel = SaifSharedChatViewModel
 
 object ChatViewModelHolder {
     @Volatile private var instance: SaifSharedChatViewModel? = null

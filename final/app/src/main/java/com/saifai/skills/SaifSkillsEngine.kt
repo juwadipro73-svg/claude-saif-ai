@@ -24,21 +24,13 @@ object SaifSkillsEngine {
         files: Map<String, String>
     ): String {
         require(files.isNotEmpty()) { "Skills package requires at least one markdown/instruction file." }
-        val sb = StringBuilder("# SAIF AI Proprietary Skill: /").append(name)
-            .append("
-Source: ").append(originUrl)
-            .append("
-
-")
-
+        val sb = StringBuilder("# SAIF AI Skill: /").append(name)
+            .append("\nSource: ").append(originUrl).append("\n\n")
         for ((relPath, content) in files) {
-            sb.append("
---- BEGIN FILE: ").append(relPath).append(" ---
-")
+            require(!relPath.startsWith("/") && ".." !in relPath.split('/')) { "Invalid skill path" }
+            sb.append("\n--- BEGIN FILE: ").append(relPath).append(" ---\n")
             sb.append(content.trim())
-            sb.append("
---- END FILE: ").append(relPath).append(" ---
-")
+            sb.append("\n--- END FILE: ").append(relPath).append(" ---\n")
         }
 
         val bytes = sb.toString().toByteArray(StandardCharsets.UTF_8)

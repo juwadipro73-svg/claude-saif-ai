@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  checks: write
 concurrency:
   group: apk-${{ github.ref }}
   cancel-in-progress: true
@@ -49,6 +50,26 @@ jobs:
                   chunk = text[i:i+3500].replace('%','%25').replace('\r','').replace('\n','%0A')
                   print('::error::' + chunk)
           PY
+      - name: Publish complete compiler diagnostics
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PYTHON'
+          import os, json, subprocess, re
+          from pathlib import Path
+          p = Path('build-ci.log')
+          if p.exists():
+              lines = p.read_text(errors='replace').splitlines()
+              errors = [re.sub(r'e: file:///.*?/final/app/src/main/java/', '', l) for l in lines if l.startswith('e: ')]
+              text = '\n'.join(errors or lines[-100:])
+              for i in range(0, len(text), 55000):
+                  payload = dict(name=f'Compiler diagnostics {i//55000+1}', head_sha=os.environ['GITHUB_SHA'],
+                      status='completed', conclusion='neutral', output=dict(title='Build failure details (not an APK)',
+                      summary='```text\n'+text[i:i+55000]+'\n```'))
+                  subprocess.run(['gh','api','--method','POST',f"repos/{os.environ['GITHUB_REPOSITORY']}/check-runs",'--input','-'],
+                      input=json.dumps(payload), text=True, check=True, stdout=subprocess.DEVNULL)
+          PYTHON
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4

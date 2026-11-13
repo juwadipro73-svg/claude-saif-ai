@@ -572,7 +572,8 @@ object AntigravityCustomApiManager {
     suspend fun completeChat(
         profile: AgyCustomApiProfile,
         messages: List<JSONObject>,
-        temperature: Double = 0.2
+        temperature: Double = 0.2,
+        maxOutputTokens: Int = 512
     ): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             require(profile.isReady()) { "Select a ready AI provider and model first." }
@@ -589,7 +590,7 @@ object AntigravityCustomApiManager {
                             .put("parts", JSONArray().put(JSONObject().put("text", message.optString("content")))))
                     }
                     val payload = JSONObject().put("contents", contents)
-                        .put("generationConfig", JSONObject().put("temperature", temperature).put("maxOutputTokens", 512))
+                        .put("generationConfig", JSONObject().put("temperature", temperature).put("maxOutputTokens", maxOutputTokens.coerceIn(1, 32768)))
                     if (systemText.isNotBlank()) {
                         payload.put("systemInstruction", JSONObject().put("parts", JSONArray().put(JSONObject().put("text", systemText))))
                     }
@@ -606,7 +607,7 @@ object AntigravityCustomApiManager {
                             .put("content", message.optString("content")))
                     }
                     val payload = JSONObject().put("model", profile.selectedModel)
-                        .put("max_tokens", 512).put("temperature", temperature).put("messages", chatMessages)
+                        .put("max_tokens", maxOutputTokens.coerceIn(1, 32768)).put("temperature", temperature).put("messages", chatMessages)
                     if (systemText.isNotBlank()) payload.put("system", systemText)
                     Request.Builder().url(buildAnthropicMessagesUrl(profile.baseUrl))
                         .header("x-api-key", profile.apiKey)
@@ -622,7 +623,7 @@ object AntigravityCustomApiManager {
                             .put("content", message.optString("content")))
                     }
                     val payload = JSONObject().put("model", profile.selectedModel)
-                        .put("messages", chatMessages).put("temperature", temperature).put("max_tokens", 512)
+                        .put("messages", chatMessages).put("temperature", temperature).put("max_tokens", maxOutputTokens.coerceIn(1, 32768))
                     Request.Builder().url(buildOpenAiChatCompletionsUrl(profile.baseUrl))
                         .apply {
                             if (profile.apiKey.isNotBlank()) header("Authorization", "Bearer ${profile.apiKey}")

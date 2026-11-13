@@ -203,7 +203,7 @@ fun SaifEngineAccountChip(
 ) {
     val c = SaifTheme.colors
     val name = authInfo.displayName.ifBlank { authInfo.fullName }.ifBlank { authInfo.email }.ifBlank { "Sign in" }
-    val avatarModel = remember(authInfo.profilePictureUrl) { com.example.saif.ui.drawer.parseProfileAvatarModel(authInfo.profilePictureUrl) }
+    val avatarModel = remember(authInfo.profilePictureUrl) { authInfo.profilePictureUrl.takeIf { it.isNotBlank() } }
     Surface(
         shape =
     RoundedCornerShape(24.dp),

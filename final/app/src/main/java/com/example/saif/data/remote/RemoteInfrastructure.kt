@@ -14,30 +14,30 @@ object AndroidLocalBridgeServer {
     val instance: SaifLocalBridgeServer get() = SaifLocalBridgeServer.instance
 }
 
-data class SystemStatus(
-    val isConnected: Boolean = true,
-    val activeEngine: String = "SAIF Cleanroom Engine"
-)
+enum class SystemStatus(val label: String, val dotColor: androidx.compose.ui.graphics.Color) {
+    READY("Provider configured", androidx.compose.ui.graphics.Color(0xFF42C9A3)),
+    UNAUTHENTICATED("Configure API provider", androidx.compose.ui.graphics.Color(0xFFF3B65A)),
+    OFFLINE("Offline", androidx.compose.ui.graphics.Color.Gray),
+    ERROR("Connection error", androidx.compose.ui.graphics.Color.Red),
+    CHECKING_AUTH("Checking configuration", androidx.compose.ui.graphics.Color.Gray),
+    ACQUIRING_CSRF("Preparing", androidx.compose.ui.graphics.Color.Gray),
+    STARTING("Starting", androidx.compose.ui.graphics.Color.Gray)
+}
 
-sealed class SystemConnectionState /* SAIF Connection */ {
-    data object Connected : SystemConnectionState()
-    data object Disconnected : SystemConnectionState()
-    data class Connecting(val attempt: Int = 1) : SystemConnectionState()
+data class SystemConnectionState(val status: SystemStatus = SystemStatus.UNAUTHENTICATED) {
+    val isReady: Boolean get() = status == SystemStatus.READY
 }
 
 object AgyHubClient {
-    data class AgyAuthInfo
-(
-        val email:
-        String? = null,
-        val displayName:
-        String? = null,
-        val profilePictureUrl: String? = null
-    )
+    // Retained data name for stored/UI compatibility, not a hub client.
+    data class AgyAuthInfo(val email: String = "", val displayName: String = "",
+        val profilePictureUrl: String = "", val fullName: String = "", val isLoggedIn: Boolean = false,
+        val planName: String = "Own API key")
 }
 
-object GoogleAccountBinding /* SAIF Binding */ {
-    fun denialReason(user: Any?, authInfo: Any?): String? = null
+object GoogleAccountBinding {
+    fun denialReason(user: com.example.data.local.AuthUser?, authInfo: AgyHubClient.AgyAuthInfo): String? =
+        if (user == null || !user.isActive || user.isBanned) "Sign in to an active SAIF AI account to use chat history." else null
 }
 
 object AntigravityAppBinding /* SAIF Binding */ {
@@ -98,6 +98,7 @@ object CustomSlashCommands /* SAIF Commands */ {
 }
 
 object PromptExpansion /* SAIF Expansion */ {
+    fun expand(text: String): String = text
     fun pluginSuggestions(query: String): List<SlashCommandItem> = emptyList()
     fun baseSlashItems(): List<SlashCommandItem> = emptyList()
 }

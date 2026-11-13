@@ -23,10 +23,18 @@ class AgentPreferences(private val context: Context) {
         fun bridgeFlags(context: Context): String = ""
     }
 
+    private val prefs = context.getSharedPreferences("native_agents", Context.MODE_PRIVATE)
+    val enabled: StateFlow<Set<AgentKind>> = enabledAgents
+    init {
+        prefs.getStringSet("enabled", null)?.let { saved ->
+            _enabledFlow.value = saved.mapNotNull { runCatching { AgentKind.valueOf(it) }.getOrNull() }.toSet()
+        }
+    }
     fun isAgentEnabled(kind: AgentKind): Boolean = kind in _enabledFlow.value
 
     fun setEnabled(set: Set<AgentKind>) {
         _enabledFlow.value = set
+        prefs.edit().putStringSet("enabled", set.map { it.name }.toSet()).apply()
     }
 }
 
