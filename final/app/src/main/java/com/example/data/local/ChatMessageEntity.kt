@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "chat_messages")
 data class ChatMessageEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey val id: String = java.util.UUID.randomUUID().toString(),
     val sessionId:
         String,
     val role: String,
@@ -19,5 +19,6 @@ data class ChatMessageEntity(
     val isError:
         Boolean = false,
     val toolCallsJson: String? = null,
-    val attachmentsJson: String? = null
+    val attachmentsJson: String? = null,
+    @androidx.room.ColumnInfo(defaultValue = "0") val isBookmarked: Boolean = false
 )
