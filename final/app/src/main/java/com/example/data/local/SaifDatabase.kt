@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ChatSessionEntity::class, ChatMessageEntity::class, UserAccountEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class SaifDatabase : RoomDatabase() {
@@ -43,6 +43,12 @@ abstract class SaifDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN attachmentUris TEXT")
+            }
+        }
+
         @Volatile
         private var INSTANCE: SaifDatabase? = null
 
@@ -53,7 +59,7 @@ abstract class SaifDatabase : RoomDatabase() {
                     SaifDatabase::class.java,
                     "saif_ai_database_v2"
                 )
-                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build()
                 INSTANCE = instance

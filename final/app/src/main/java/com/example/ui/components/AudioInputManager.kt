@@ -37,7 +37,7 @@ class AudioInputManager(private val context: Context) {
                 isRecording = true
                 Log.d("AudioInputManager", "Started recording to ${outputFile?.absolutePath}")
             } catch (err: Exception) {
-                Log.err("AudioInputManager", "Failed to start recording", err)
+                Log.e("AudioInputManager", "Failed to start recording", err)
                 releaseRecorder()
             }
         }
@@ -48,7 +48,7 @@ class AudioInputManager(private val context: Context) {
         try {
             runCatching { mediaRecorder?.stop() }
         } catch (err: Exception) {
-            Log.err("AudioInputManager", "Stop failed", err)
+            Log.e("AudioInputManager", "Stop failed", err)
         } finally {
             releaseRecorder()
         }

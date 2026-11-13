@@ -182,7 +182,7 @@ object TelegramAssetManager {
                 fileSize = fileSize
             )
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to parse caption: $caption", err)
+            Log.e(TAG, "Failed to parse caption: $caption", err)
             return null
         }
     }
@@ -257,7 +257,7 @@ object TelegramAssetManager {
                     )
                 }
             } catch (err: Exception) {
-                Log.err(TAG, "Failed to parse assets_catalog.json", err)
+                Log.e(TAG, "Failed to parse assets_catalog.json", err)
             }
         }
 
@@ -526,7 +526,7 @@ object TelegramAssetManager {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to download Telegram asset ${bestMatch.title}: ${redact(err.message, botToken)}")
+            Log.e(TAG, "Failed to download Telegram asset ${bestMatch.title}: ${redact(err.message, botToken)}")
         }
 
         // No fake placeholder: a failed download is a failure, reported honestly to the caller.
@@ -574,7 +574,7 @@ object TelegramAssetManager {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Download error for ${matched.title}: ${redact(err.message, botToken)}")
+            Log.e(TAG, "Download error for ${matched.title}: ${redact(err.message, botToken)}")
         }
 
         if (targetFile.exists() && targetFile.length() == 0L) targetFile.delete()
@@ -656,7 +656,7 @@ object TelegramAssetManager {
             if (tmp.length() == 0L || !tmp.renameTo(target)) { tmp.delete(); return@withContext null }
             asset.copy(localCachedPath = target.absolutePath)
         } catch (err: Exception) {
-            Log.err(TAG, "Candidate download failed: ${redact(err.message, botToken)}")
+            Log.e(TAG, "Candidate download failed: ${redact(err.message, botToken)}")
             tmp.delete()
             null
         }
@@ -680,7 +680,7 @@ object TelegramAssetManager {
             }
         } catch (err: Exception) {
             lastDownloadError = "Network error: ${redact(err.message, botToken)}"
-            Log.err(TAG, "getFile error: ${redact(err.message, botToken)}")
+            Log.e(TAG, "getFile error: ${redact(err.message, botToken)}")
         }
         return null
     }
@@ -765,7 +765,7 @@ object TelegramAssetManager {
 
             VideoEdlPlan(projectMeta = meta, timeline = items, script = script)
         } catch (err: Exception) {
-            Log.err(TAG, "parseEdlJson error", err)
+            Log.e(TAG, "parseEdlJson error", err)
             null
         }
     }

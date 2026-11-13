@@ -51,7 +51,7 @@ object KeyStoreCrypto {
                 Log.i(TAG, "Initialized new Android KeyStore AES-256 master key for SAIF AI vault")
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Failed initializing KeyStore key: ${err.message}", err)
+            Log.e(TAG, "Failed initializing KeyStore key: ${err.message}", err)
         }
     }
 
@@ -60,7 +60,7 @@ object KeyStoreCrypto {
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
             (keyStore.getEntry(KEY_ALIAS, null) as? KeyStore.SecretKeyEntry)?.secretKey
         } catch (err: Exception) {
-            Log.err(TAG, "Failed retrieving secret key: ${err.message}", err)
+            Log.e(TAG, "Failed retrieving secret key: ${err.message}", err)
             null
         }
     }

@@ -317,7 +317,7 @@ object GeminiService {
                                         }
                                     }
                                 } catch (err: Exception) {
-                                    Log.err(TAG, "Failed parsing SSE chunk: ${err.message}")
+                                    Log.e(TAG, "Failed parsing SSE chunk: ${err.message}")
                                 }
                             }
                         }
@@ -385,7 +385,7 @@ object GeminiService {
                 return@withContext Result.success(fullResponse.toString())
             }
             if (err is kotlinx.coroutines.CancellationException && err !is kotlinx.coroutines.TimeoutCancellationException) throw err
-            Log.err(TAG, "Error contacting Gemini API: ${err.message}")
+            Log.e(TAG, "Error contacting Gemini API: ${err.message}")
             throw err
         }
     }

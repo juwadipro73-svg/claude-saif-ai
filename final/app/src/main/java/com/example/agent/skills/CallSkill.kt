@@ -83,7 +83,7 @@ object CallSkill : Skill {
 
             return SkillResult(true, "Calling $displayName ($finalNumber)", data = mapOf("contact" to displayName, "number" to finalNumber))
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to start call intent: ${err.message}")
+            Log.e(TAG, "Failed to start call intent: ${err.message}")
             return SkillResult(false, "Failed to place call: ${err.message}")
         }
     }

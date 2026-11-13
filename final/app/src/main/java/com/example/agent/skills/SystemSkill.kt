@@ -129,7 +129,7 @@ object SystemSkill : Skill {
                 SkillResult(false, "Flashlight control requires Android M+")
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Error toggling flashlight: ${err.message}")
+            Log.e(TAG, "Error toggling flashlight: ${err.message}")
             SkillResult(false, "Failed to control flashlight: ${err.message}")
         }
     }

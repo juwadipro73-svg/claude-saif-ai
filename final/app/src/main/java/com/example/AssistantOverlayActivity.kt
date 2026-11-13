@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 class AssistantOverlayActivity : ComponentActivity() {
     override fun onCreate(initialSavedState: Bundle?) {
         super.onCreate(initialSavedState)
-        androidx.activity.enableEdgeToEdge()
+        enableEdgeToEdge()
         setContent {
             Text(text = "SAIF Voice Assistant", modifier = Modifier)
         }

@@ -53,7 +53,7 @@ object SkillRegistry {
         return try {
             skill.run(args, env)
         } catch (err: Exception) {
-            Log.err(TAG, "Error executing skill $name: ${err.message}")
+            Log.e(TAG, "Error executing skill $name: ${err.message}")
             SkillResult(false, "Skill '$name' execution failed: ${err.message}")
         }
     }

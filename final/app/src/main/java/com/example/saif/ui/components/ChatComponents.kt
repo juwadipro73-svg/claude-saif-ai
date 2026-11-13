@@ -108,7 +108,7 @@ fun ThinkingAccordion
                     color = MaterialTheme.colorScheme.primary
                 )
                 Icon(
-                    imageVector = if (isExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                    imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                     contentDescription =
     null,
                     modifier =

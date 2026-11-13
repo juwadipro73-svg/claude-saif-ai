@@ -144,8 +144,8 @@ fun SaifConversationScreen(
             val pendingItem = state.securityQueue.first()
             SaifSecurityGuardCard(
                 pending = pendingItem,
-                onGrant = { onPermit(pendingItem.toolCall.callId, it) },
-                onRefuse = { onDeny(pendingItem.toolCall.callId, it) },
+                onGrant = { onPermit(pendingItem.toolCall.id, it) },
+                onRefuse = { onDeny(pendingItem.toolCall.id, it) },
                 cardModifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -178,7 +178,7 @@ private fun SaifPromptRow(entry: SaifChatMessage) {
 private fun SaifResponseRow(entry: SaifChatMessage) {
     Column(modifier =
     Modifier.fillMaxWidth(1.0f), horizontalAlignment = Alignment.Start) {
-        if (!entry.reasoningText.isNullOrBlank()) {
+        if (!entry.thoughtText.isNullOrBlank()) {
             var thoughtsExpanded by remember { mutableStateOf(false) }
             Card(
                 shape =
@@ -191,7 +191,7 @@ private fun SaifResponseRow(entry: SaifChatMessage) {
                     Text("Model Deliberation", style = MaterialTheme.typography.labelMedium, fontWeight =
     FontWeight.SemiBold)
                     AnimatedVisibility(visible = thoughtsExpanded) {
-                        Text(entry.reasoningText, style = MaterialTheme.typography.bodySmall, modifier =
+                        Text(entry.thoughtText, style = MaterialTheme.typography.bodySmall, modifier =
     Modifier.padding(top = 4.dp))
                     }
                 }
@@ -239,17 +239,17 @@ private fun SaifExecutionBadge(tool: SaifToolCall) {
     Modifier.size(16.dp))
                 Spacer(Modifier.width(width = 6.5.dp))
                 Text(
-                    text = "${tool.operationName}: ${tool.commandText.take(28)}",
+                    text = "${tool.name}: ${tool.command.take(28)}",
                     style = MaterialTheme.typography.bodySmall.copy(fontSize =
     11.5.sp),
                     fontFamily =
     FontFamily.Monospace
                 )
             }
-            if (tool.standardOutput.isNotBlank()) {
+            if (tool.output.isNotBlank()) {
                 IconButton(
                     onClick = {
-                        val clip = ClipData.newPlainText("output", tool.standardOutput)
+                        val clip = ClipData.newPlainText("output", tool.output)
                         (ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(clip)
                         Toast.makeText(ctx, "Output copied", Toast.LENGTH_SHORT).show()
                     },
@@ -291,7 +291,7 @@ private fun SaifSecurityGuardCard(
     FontWeight.Bold)
             }
             Spacer(Modifier.height(height = 4.5.dp))
-            Text(pending.toolCall.commandText.ifBlank { pending.toolCall.operationName }, fontFamily =
+            Text(pending.toolCall.command.ifBlank { pending.toolCall.name }, fontFamily =
     FontFamily.Monospace, fontSize =
     11.5.sp)
             Spacer(Modifier.height(height = 8.5.dp))

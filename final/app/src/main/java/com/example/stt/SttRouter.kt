@@ -213,7 +213,6 @@ object SttRouter {
         }
         SttResult("", latencyMs = System.currentTimeMillis() - start, rejectedReason = lastFailureReason)
     }
-    }
 
     private enum class SttServiceType { GROQ, OPENAI, GEMINI }
 

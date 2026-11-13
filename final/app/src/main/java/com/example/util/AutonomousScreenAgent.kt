@@ -170,7 +170,7 @@ object AutonomousScreenAgent {
                 // Natural human interaction delay between steps
                 delay(450L)
             } catch (err: Exception) {
-                Log.err(TAG, "Error in step ${step.stepIndex}: ${err.message}", err)
+                Log.e(TAG, "Error in step ${step.stepIndex}: ${err.message}", err)
                 results.add("Step ${step.stepIndex} Error: ${err.message}")
             }
         }

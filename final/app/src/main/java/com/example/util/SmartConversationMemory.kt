@@ -468,7 +468,7 @@ PERSONALIZATION & MEMORY INSTRUCTIONS (LIKE CHATGPT & GEMINI):
             }
             exportFile
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to export data: ${err.message}", err)
+            Log.e(TAG, "Failed to export data: ${err.message}", err)
             null
         }
     }
@@ -486,7 +486,7 @@ PERSONALIZATION & MEMORY INSTRUCTIONS (LIKE CHATGPT & GEMINI):
             }
             context.startActivity(Intent.createChooser(intent, "Download / Share SAIF AI Data"))
         } catch (err: Exception) {
-            Log.err(TAG, "Could not launch share chooser: ${err.message}")
+            Log.e(TAG, "Could not launch share chooser: ${err.message}")
         }
     }
 }

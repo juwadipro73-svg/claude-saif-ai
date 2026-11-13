@@ -116,7 +116,7 @@ object VideoAnalyzer {
         null
     } catch (e: SecurityException) { "no permission to read this file" }
     catch (e: IllegalArgumentException) { "the file location is not valid (${e.message ?: "bad argument"})" }
-    catch (e: RuntimeException) { "the media engine cannot open it (${e.message ?: e.javaClass.simpleName})" }
+    catch (e: RuntimeException) { "the media engine cannot open it (${e.message ?: err.javaClass.simpleName})" }
 
     private fun copyToCache(context: Context, uri: Uri): File {
         val dir = File(context.cacheDir, "director_probe").apply { mkdirs() }
@@ -137,7 +137,7 @@ object VideoAnalyzer {
                 }
             }
             return out
-        } catch (err: Exception) { out.delete(); throw e }
+        } catch (err: Exception) { out.delete(); throw err }
     }
 
     suspend fun analyze(context: Context, uri: Uri, onStep: (String) -> Unit = {}): Result<VideoAnalysis> = withContext(Dispatchers.IO) {
@@ -202,8 +202,8 @@ object VideoAnalyzer {
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
         } catch (err: Exception) {
-            val why = e.message?.takeIf { it.isNotBlank() } ?: e.javaClass.simpleName
-            android.util.Log.w("VideoAnalyzer", "analyze failed while $stage: ${e.javaClass.simpleName}")
+            val why = err.message?.takeIf { it.isNotBlank() } ?: err.javaClass.simpleName
+            android.util.Log.w("VideoAnalyzer", "analyze failed while $stage: ${err.javaClass.simpleName}")
             Result.failure(IllegalStateException("Could not analyze video while $stage: $why"))
         } finally {
             try { r.release() } catch (_: Exception) {}

@@ -212,7 +212,7 @@ object SaifAiEditingEngine {
             onProgressPhase("Plan Finalized & Ready to Execute", 1.0f)
             Result.success(parsedPlan)
         } catch (err: Exception) {
-            Log.err(TAG, "Error in planAndStreamEdit", err)
+            Log.e(TAG, "Error in planAndStreamEdit", err)
             Result.failure(err)
         }
     }
@@ -526,7 +526,7 @@ object SaifAiEditingEngine {
 
             Result.failure(Exception("Script generation failed: please verify your AI Provider in Settings."))
         } catch (err: Exception) {
-            Log.err(TAG, "generateScript error", err)
+            Log.e(TAG, "generateScript error", err)
             Result.failure(err)
         }
     }
@@ -686,7 +686,7 @@ Output strictly valid JSON with keys:
             onStepUpdate("✅ Master Director Video Ready!", 1.0f)
             Result.success(Pair(finalEdl, projectData))
         } catch (err: Exception) {
-            Log.err(TAG, "generateAutonomousDirectorEdl error", err)
+            Log.e(TAG, "generateAutonomousDirectorEdl error", err)
             Result.failure(err)
         }
     }
@@ -2038,7 +2038,7 @@ $opsJson
                 why = why
             )
         } catch (err: Exception) {
-            Log.err(TAG, "parseAndSanitizePlan fallback", err)
+            Log.e(TAG, "parseAndSanitizePlan fallback", err)
             synthesizeFallbackPlan(project, userPrompt)
         }
     }

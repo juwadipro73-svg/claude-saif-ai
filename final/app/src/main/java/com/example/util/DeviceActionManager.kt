@@ -77,7 +77,7 @@ object DeviceActionManager {
                     val status = executeAction(context, action)
                     results.add(status)
                 } catch (err: Exception) {
-                    Log.err(TAG, "Error executing action $action: ${err.message}", err)
+                    Log.e(TAG, "Error executing action $action: ${err.message}", err)
                     results.add("Error: ${err.message}")
                 }
                 if (actions.size > 1) {
@@ -334,7 +334,7 @@ object DeviceActionManager {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Error searching installed apps: ${err.message}")
+            Log.e(TAG, "Error searching installed apps: ${err.message}")
         }
 
         Toast.makeText(context, "App not found: $appQuery", Toast.LENGTH_SHORT).show()
@@ -358,7 +358,7 @@ object DeviceActionManager {
             Toast.makeText(context, "Alarm set for %02d:%02d".format(validHour, validMinute), Toast.LENGTH_SHORT).show()
             true
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to set alarm: ${err.message}")
+            Log.e(TAG, "Failed to set alarm: ${err.message}")
             launchApp(context, "clock")
         }
     }
@@ -400,7 +400,7 @@ object DeviceActionManager {
                 return true
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to send WhatsApp message: ${err.message}")
+            Log.e(TAG, "Failed to send WhatsApp message: ${err.message}")
             return try {
                 val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
@@ -552,7 +552,7 @@ object DeviceActionManager {
             audioManager.dispatchMediaKeyEvent(eventDown)
             audioManager.dispatchMediaKeyEvent(eventUp)
         } catch (err: Exception) {
-            Log.err(TAG, "Error dispatching media key: ${err.message}")
+            Log.e(TAG, "Error dispatching media key: ${err.message}")
         }
     }
 
@@ -671,7 +671,7 @@ object DeviceActionManager {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Error dialing phone: ${err.message}")
+            Log.e(TAG, "Error dialing phone: ${err.message}")
             "Phone call karne me samasya: ${err.message}"
         }
     }
@@ -742,7 +742,7 @@ object DeviceActionManager {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Error resolving contact: ${err.message}")
+            Log.e(TAG, "Error resolving contact: ${err.message}")
         } finally {
             cursor?.close()
         }
@@ -786,7 +786,7 @@ object DeviceActionManager {
                 "Opened the SMS app for $recipient."
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Failed to send SMS: ${err.message}")
+            Log.e(TAG, "Failed to send SMS: ${err.message}")
             "SMS bhejne me dikkat aayi: ${err.message}"
         }
     }
@@ -803,7 +803,7 @@ object DeviceActionManager {
             Toast.makeText(context, "Flashlight $stateText", Toast.LENGTH_SHORT).show()
             true
         } catch (err: Exception) {
-            Log.err(TAG, "Torch toggle error: ${err.message}")
+            Log.e(TAG, "Torch toggle error: ${err.message}")
             false
         }
     }
@@ -1101,7 +1101,7 @@ object DeviceActionManager {
             }
             audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, adjust, AudioManager.FLAG_SHOW_UI)
         } catch (err: Exception) {
-            Log.err(TAG, "Volume adjust error: ${err.message}")
+            Log.e(TAG, "Volume adjust error: ${err.message}")
         }
     }
 

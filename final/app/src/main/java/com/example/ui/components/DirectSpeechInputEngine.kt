@@ -307,7 +307,7 @@ class DirectSpeechInputEngine(
                     }
                 }
             } catch (err: Exception) {
-                Log.err(TAG, "Audio recording loop error: ${err.message}")
+                Log.e(TAG, "Audio recording loop error: ${err.message}")
             } finally {
                 stopInternal()
 

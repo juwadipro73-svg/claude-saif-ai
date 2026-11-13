@@ -115,7 +115,7 @@ fun SaifMarkdown(
             }
 
             if (inCodeBlock) {
-                codeBuffer.add(line)
+                codeBuffer.add(rawLine)
                 continue
             }
 
@@ -184,7 +184,7 @@ fun SaifMarkdown(
                 trimmed.isNotBlank() -> {
                     SelectionContainer(modifier = Modifier) {
                         Text(
-                            text = parseInlineMarkdown(line),
+                            text = parseInlineMarkdown(rawLine),
                             style = MaterialTheme.typography.bodyMedium,
                             color = textColor
                         )

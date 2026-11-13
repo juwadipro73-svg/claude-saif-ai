@@ -650,17 +650,8 @@ object GitHubIntegrationManager {
             envFile.setReadable(false, false)
             envFile.setReadable(true, true)
 
-            // Also sync to running local Git daemon if online
-            runCatching {
-                GitApiClient.setConfig(
-                    projectPath = "/root",
-                    userName = safeName,
-                    userEmail = safeEmail,
-                    pullRebase = null,
-                    remoteUrl = null,
-                    isGlobal = true
-                )
-            }
+            // Native git reads the identity/configuration files written above.
+            Unit
         }
     }
 

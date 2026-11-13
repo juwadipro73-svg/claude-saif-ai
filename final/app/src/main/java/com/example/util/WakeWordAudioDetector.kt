@@ -150,7 +150,7 @@ object WakeWordAudioDetector {
                         delay(10)
                     }
                 } catch (err: Exception) {
-                    Log.err(TAG, "Error in wake word audio loop: ${err.message}")
+                    Log.e(TAG, "Error in wake word audio loop: ${err.message}")
                 } finally {
                     try {
                         localRecord?.stop()
@@ -194,7 +194,7 @@ object WakeWordAudioDetector {
                 }
             }
         } catch (err: Exception) {
-            Log.err(TAG, "Error processing potential wake word: ${err.message}")
+            Log.e(TAG, "Error processing potential wake word: ${err.message}")
         }
     }
 

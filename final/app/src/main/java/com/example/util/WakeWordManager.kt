@@ -256,7 +256,7 @@ object WakeWordManager {
                 }
                 context.startActivity(intent)
             } catch (err: Exception) {
-                Log.err(TAG, "Error starting AssistantOverlayActivity: ${err.message}")
+                Log.e(TAG, "Error starting AssistantOverlayActivity: ${err.message}")
             }
         }
 

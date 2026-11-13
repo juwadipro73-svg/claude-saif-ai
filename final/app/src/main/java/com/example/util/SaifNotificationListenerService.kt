@@ -48,7 +48,7 @@ class SaifNotificationListenerService : NotificationListenerService() {
                 }
                 context.startActivity(intent)
             } catch (err: Exception) {
-                Log.err(TAG, "Failed to open notification settings: ${err.message}")
+                Log.e(TAG, "Failed to open notification settings: ${err.message}")
             }
         }
 

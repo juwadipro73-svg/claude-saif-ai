@@ -178,7 +178,7 @@ object ComputerUseBrain : AgentBrain {
 
             BrainDecision(calls = calls, thought = thought.trim())
         } catch (err: Exception) {
-            Log.err(TAG, "ComputerUseBrain error, falling back: ${err.message}")
+            Log.e(TAG, "ComputerUseBrain error, falling back: ${err.message}")
             failureCount++
             if (failureCount >= 2) AgentBrainFactory.markComputerUseFailed()
             FunctionCallingBrain.decide(task, sessionCtx, notes, history, snapshot, thinkingLevel)

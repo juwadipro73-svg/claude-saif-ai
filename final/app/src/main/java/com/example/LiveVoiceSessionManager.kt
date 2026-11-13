@@ -417,7 +417,7 @@ class LiveVoiceSessionManager(
                             )
                         }
                     } catch (err: Exception) {
-                        Log.err(TAG, "Task execution failed: ${err.message}", err)
+                        Log.e(TAG, "Task execution failed: ${err.message}", err)
                         enqueueSentenceForSpeech("Task execute karne me dikkat aayi sir.")
                         playNextSentenceIfAvailable()
                     } finally {
@@ -581,7 +581,7 @@ SPOKEN RESPONSE FORMAT:
                 Log.d(TAG, "Turn processing cancelled by user barge-in.")
                 return
             }
-            Log.err(TAG, "Error in processAudioTurn: ${err.message}", err)
+            Log.e(TAG, "Error in processAudioTurn: ${err.message}", err)
             _liveSubtitle.value = "LISTENING"
             _sessionState.value = VoiceSessionState.LISTENING
             turnManager.transitionTo(TurnState.LISTENING)

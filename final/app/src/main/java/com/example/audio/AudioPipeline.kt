@@ -126,7 +126,7 @@ class AudioPipeline(
 
             audioRecord?.startRecording()
         } catch (err: Exception) {
-            Log.err(TAG, "Failed starting AudioRecord: ${err.message}")
+            Log.e(TAG, "Failed starting AudioRecord: ${err.message}")
             release()
             return false
         }
