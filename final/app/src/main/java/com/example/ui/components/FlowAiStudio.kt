@@ -315,7 +315,7 @@ fun FlowAiBrowserDialog(onDismiss: () -> Unit) {
                 Row(verticalAlignment =
     Alignment.CenterVertically, horizontalArrangement =
     Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Close", tint =
+                    com.example.ui.components.MorphingIconButton(onClick = onDismiss) { Icon(Icons.Default.Close, "Close", tint =
     Color.White) }
                     Icon(Icons.Default.Public, null, tint = Color(0xFF7C5CE0))
                     OutlinedTextField(url, { url = it }, Modifier.weight(1f), singleLine =
@@ -586,7 +586,7 @@ fun FlowBatchDialog(topic: String, aspect: String, style: String, onDismiss: () 
                 Row(verticalAlignment =
     Alignment.CenterVertically, horizontalArrangement =
     Arrangement.spacedBy(8.dp)) {
-                    IconButton(onClick = {
+                    com.example.ui.components.MorphingIconButton(onClick = {
                         webView.evaluateJavascript("window.SaifFlowAuto && window.SaifFlowAuto.stop()", null)
                         onDismiss()
                     }) { Icon(Icons.Default.Close, "Close", tint =

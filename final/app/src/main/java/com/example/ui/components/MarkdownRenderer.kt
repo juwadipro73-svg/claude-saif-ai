@@ -110,7 +110,7 @@ fun MarkdownRenderer(
     Modifier.fillMaxSize()
                 )
                 
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = { selectedImageUrl = null },
                     modifier =
     Modifier

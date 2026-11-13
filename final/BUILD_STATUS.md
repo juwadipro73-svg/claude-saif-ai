@@ -1,7 +1,21 @@
 # Build status (honest)
 
-Last checked by static analysis only. No Android SDK or Kotlin compiler was available, so the project has NOT been compiled or run.
-Run `./gradlew :app:assembleDebug` and fix or report the errors.
+## GitHub Actions build attempt — 2026-11-13
+
+An actual `:app:assembleStandardDebug` build was attempted on the current Arena branch, using GitHub's Ubuntu runner, JDK 21 and preinstalled Android SDK. It **failed compilation; no APK was generated**. No unit/device tests ran.
+
+Latest compilation run: https://github.com/juwadipro73-svg/claude-saif-ai/actions/runs/43423607528
+Source commit: `3abe3b4`.
+
+- Initial SDK setup download failed; workflow now uses the runner's preinstalled SDK.
+- Room/KSP found missing `ownerUid` and `isBookmarked` entity columns. Restored those fields, session mode and UUID defaults, with a version 5-to-6 preserving migration. The next run proceeded to Kotlin compilation.
+- Kotlin compilation then failed on incompatible backend/domain adapters: missing `PendingToolApproval`, missing ChatMessage/ToolCall constructor fields, immutable state where callers require mutable state, and LocalEnvironmentManager command signature/result mismatches.
+- Numerous pre-existing exception handlers refer to `e` despite declaring `err`. CloudBuildStatusCard also contains `errorMsgMsg`/`errorMsg` and invalid `colorScheme.errorMsg` references.
+- The run includes build-log artifacts and compiler-error check annotations. Those are diagnostic artifacts, **not an APK download**.
+
+Next required work: restore compatible real backend/domain implementations, fix compiler errors across the app, rerun the build, then validate installation and task execution. Do not disable account ownership checks or replace core behavior with no-op stubs just to get a green build.
+
+The older static inventory below is retained as context; it is not a claim that the project builds.
 
 ## Fixed in this pass
 - Removed the dead `:automation` module dependency from app/build.gradle.kts.

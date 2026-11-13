@@ -115,7 +115,7 @@ fun ImageCropEditPanel(
                         modifier =
     Modifier.size(44.dp)
                     ) {
-                        IconButton(onClick = onDismiss) {
+                        com.example.ui.components.MorphingIconButton(onClick = onDismiss) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Cancel",
@@ -153,7 +153,7 @@ fun ImageCropEditPanel(
                         modifier =
     Modifier.size(44.dp)
                     ) {
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 val cropped = cropSquareBitmap(
                                     sourceBitmap = bitmap,
@@ -291,7 +291,7 @@ fun ImageCropEditPanel(
                             horizontalArrangement =
     Arrangement.SpaceBetween
                         ) {
-                            IconButton(
+                            com.example.ui.components.MorphingIconButton(
                                 onClick = { userZoom = (userZoom - 0.2f).coerceAtLeast(0.5f) },
                                 modifier =
     Modifier.size(36.dp)
@@ -313,7 +313,7 @@ fun ImageCropEditPanel(
                                 )
                             )
 
-                            IconButton(
+                            com.example.ui.components.MorphingIconButton(
                                 onClick = { userZoom = (userZoom + 0.2f).coerceAtMost(4.0f) },
                                 modifier =
     Modifier.size(36.dp)

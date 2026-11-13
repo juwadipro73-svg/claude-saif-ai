@@ -117,78 +117,12 @@ object PermissionManager {
 
         list.add(
             PermissionItemInfo(
-                id = "overlay",
-                title = "Display Over Other Apps (फ़्लोटिंग ओवरले)",
-                description = "Show the live assistant orb and controls over other apps",
-                iconName = "layers",
-                isGranted = hasOverlayPermission(context),
-                isSpecialSettings = true
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
-                id = "accessibility",
-                title = "Accessibility Automation (स्क्रीन ऑटोमेशन)",
-                description = "Tap, scroll and type automatically in apps like YouTube, WhatsApp and Instagram",
-                iconName = "touch_app",
-                isGranted = hasAccessibility(context),
-                isSpecialSettings = true
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
                 id = "camera",
                 title = "Camera (कैमरा)",
                 description = "Take photos and analyze or scan them",
                 iconName = "camera",
                 isGranted = hasCamera(context),
                 manifestPermission = Manifest.permission.CAMERA
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
-                id = "contacts",
-                title = "Contacts (संपर्क)",
-                description = "Find a contact's number so you can call or message them by name",
-                iconName = "contacts",
-                isGranted = hasReadContacts(context),
-                manifestPermission = Manifest.permission.READ_CONTACTS
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
-                id = "call",
-                title = "Phone Calls (फ़ोन कॉल)",
-                description = "Place calls directly with a voice command",
-                iconName = "phone",
-                isGranted = hasCallPhone(context),
-                manifestPermission = null
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
-                id = "sms",
-                title = "SMS Messages (संदेश)",
-                description = "Send SMS messages directly",
-                iconName = "message",
-                isGranted = hasSendSms(context),
-                manifestPermission = null
-            )
-        )
-
-        list.add(
-            PermissionItemInfo(
-                id = "notification_listener",
-                title = "Notification Access (सूचना पढ़ना)",
-                description = "Read out WhatsApp and phone notifications",
-                iconName = "notifications",
-                isGranted = hasNotificationListener(context),
-                isSpecialSettings = true
             )
         )
 

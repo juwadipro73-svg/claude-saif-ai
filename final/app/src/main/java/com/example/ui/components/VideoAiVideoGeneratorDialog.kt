@@ -135,7 +135,7 @@ fun VideoAiVideoGeneratorDialog(
             ) {
                 Row(verticalAlignment =
     Alignment.CenterVertically) {
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = onDismiss,
                         modifier =
     Modifier

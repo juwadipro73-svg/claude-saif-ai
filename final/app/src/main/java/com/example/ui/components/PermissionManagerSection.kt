@@ -116,7 +116,7 @@ fun PermissionManagerSection(
     15.sp
                 )
                 Text(
-                    text = if (pendingPermissions.isEmpty()) "All permissions are active" else "${pendingPermissions.size} permissions pending",
+                    text = "Optional · enable only for features you use",
                     style = MaterialTheme.typography.bodySmall,
                     color = SaifTheme.colors.textSecondary,
                     fontSize =
@@ -174,7 +174,7 @@ fun PermissionManagerSection(
     Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "All Permissions Allowed!",
+                                text = "Feature permissions enabled",
                                 fontWeight =
     FontWeight.Bold,
                                 fontSize =

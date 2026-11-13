@@ -214,7 +214,7 @@ fun LibraryManagerScreen(
                         verticalAlignment =
     Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onBack) {
+                        com.example.ui.components.MorphingIconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack
                                 contentDescription = "Navigate back from Library",

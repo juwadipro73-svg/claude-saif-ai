@@ -562,7 +562,7 @@ fun AuthScreen(
                             ),
                             keyboardActions = KeyboardActions(onDone = { handleAuthSubmit() }),
                             trailingIcon = {
-                                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                com.example.ui.components.MorphingIconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                                     Icon(
                                         imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                         contentDescription = if (isPasswordVisible) "Hide password" else "Show password",

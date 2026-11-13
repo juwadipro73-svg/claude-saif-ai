@@ -71,10 +71,10 @@ android {
             keyPassword = "android"
         }
         create("release") {
-            storeFile = file("release.jks")
-            storePassword = "123456"
-            keyAlias = "saif"
-            keyPassword = "123456"
+            System.getenv("SAIF_RELEASE_STORE_FILE")?.let { storeFile = file(it) }
+            storePassword = System.getenv("SAIF_RELEASE_STORE_PASSWORD")
+            keyAlias = System.getenv("SAIF_RELEASE_KEY_ALIAS")
+            keyPassword = System.getenv("SAIF_RELEASE_KEY_PASSWORD")
         }
     }
 
@@ -97,7 +97,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (System.getenv("SAIF_RELEASE_STORE_FILE") != null) signingConfigs.getByName("release") else null
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

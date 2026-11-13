@@ -361,7 +361,7 @@ After the action block (or if no action needed), give a short, natural, friendly
 
                             // TTS Speaker control
                             if (mode == AssistantSheetState.RESPONDED && !assistantResponse.isNullOrBlank()) {
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = {
                                         if (isSpeaking) {
                                             TTSManager.stop()
@@ -389,7 +389,7 @@ After the action block (or if no action needed), give a short, natural, friendly
                                     )
                                 }
 
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = {
                                         clipboardManager.setText(AnnotatedString(assistantResponse ?: ""))
                                     },
@@ -506,7 +506,7 @@ After the action block (or if no action needed), give a short, natural, friendly
     Modifier.weight(1f))
 
                         // Switch mode button (Keyboard <-> Mic)
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 if (mode == AssistantSheetState.LISTENING) {
                                     speechEngine.stopListening()
@@ -535,7 +535,7 @@ After the action block (or if no action needed), give a short, natural, friendly
                         }
 
                         // Close button
-                        IconButton(
+                        com.example.ui.components.MorphingIconButton(
                             onClick = {
                                 dismissWithAnimation()
                             },
@@ -681,7 +681,7 @@ After the action block (or if no action needed), give a short, natural, friendly
                             )
 
                             if (textInput.isNotBlank()) {
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = {
                                         val q = textInput
                                         textInput = ""
@@ -704,7 +704,7 @@ After the action block (or if no action needed), give a short, natural, friendly
                                     )
                                 }
                             } else {
-                                IconButton(
+                                com.example.ui.components.MorphingIconButton(
                                     onClick = {
                                         keyboardController?.hide()
                                         startListening()

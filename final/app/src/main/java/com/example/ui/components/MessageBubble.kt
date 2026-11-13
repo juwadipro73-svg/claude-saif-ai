@@ -219,7 +219,7 @@ fun MessageBubble
                                         modifier =
     Modifier.fillMaxSize()
                                     )
-                                    IconButton(
+                                    com.example.ui.components.MorphingIconButton(
                                         onClick = { showPreview = false },
                                         modifier =
     Modifier.align(Alignment.TopEnd).padding(16.dp).padding(top = 24.dp)

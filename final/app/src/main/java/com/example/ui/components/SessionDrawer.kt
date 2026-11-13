@@ -470,7 +470,7 @@ fun SessionDrawerContent(
                                     modifier =
     Modifier.padding(start = 4.dp)
                                 ) {
-                                    IconButton(
+                                    com.example.ui.components.MorphingIconButton(
                                         onClick = { showMenu = true },
                                         modifier =
     Modifier.size(24.dp)
@@ -575,53 +575,6 @@ fun SessionDrawerContent(
                         } else null
                     }
 
-                    if (user.isAdmin) {
-                        Surface(
-                            onClick = {
-                                drawerScope.launch { drawerState.close() }
-                                onOpenAdminDashboard()
-                            },
-                            shape =
-    RoundedCornerShape(12.dp),
-                            color = Color(0xFF2E2046),
-                            border = BorderStroke(1.dp, Color(0xFF6B31CF).copy(alpha = 0.7f)),
-                            modifier =
-    Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp)
-                        ) {
-                            Row(
-                                modifier =
-    Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                                verticalAlignment =
-    Alignment.CenterVertically
-                            ) {
-                                Icon(imageVector = Icons.Outlined.AdminPanelSettings, contentDescription =
-    null, tint = Color(0xFFD4C9F8), modifier =
-    Modifier.size(16.dp))
-                                Spacer(modifier =
-    Modifier.width(8.dp))
-                                Text(
-                                    text = "Admin Control Center",
-                                    color = Color(0xFFD4C9F8),
-                                    fontSize =
-    13.sp,
-                                    fontWeight =
-    FontWeight.Bold,
-                                    modifier =
-    Modifier.weight(1f)
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.ChevronRight,
-                                    contentDescription =
-    null,
-                                    tint = Color(0xFF6B31CF),
-                                    modifier =
-    Modifier.size(16.dp)
-                                )
-                            }
-                        }
-                    }
 
                     Surface(
                         color = SaifTheme.colors.surfaceCard.copy(alpha = 0.7f),

@@ -74,7 +74,7 @@ fun VideoResolutionQualityDialog(
     14.sp, fontWeight =
     FontWeight.Bold)
                     }
-                    IconButton(onClick = onDismiss, modifier =
+                    com.example.ui.components.MorphingIconButton(onClick = onDismiss, modifier =
     Modifier.size(24.dp)) {
                         Icon(Icons.Default.Close, contentDescription = "Close", tint = Color(0xFFD6D3C7), modifier =
     Modifier.size(18.dp))

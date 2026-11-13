@@ -421,7 +421,7 @@ fun AiProviderSettingsInline() {
                         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
-                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                            com.example.ui.components.MorphingIconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                                 Icon(
                                     imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                     contentDescription = "Toggle Visibility",
@@ -434,7 +434,7 @@ fun AiProviderSettingsInline() {
                     )
                     
                     if (apiKeys.size > 1) {
-                        IconButton(onClick = {
+                        com.example.ui.components.MorphingIconButton(onClick = {
                             val updated = apiKeys.toMutableList()
                             updated.removeAt(index)
                             apiKeys = updated
@@ -971,7 +971,7 @@ fun AiProviderSettingsInline() {
     Modifier.size(18.dp)) },
                         trailingIcon = {
                             if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
+                                com.example.ui.components.MorphingIconButton(onClick = { searchQuery = "" }) {
                                     Icon(Icons.Default.Close, contentDescription = "Clear", tint = Color.Gray, modifier =
     Modifier.size(16.dp))
                                 }

@@ -9,6 +9,7 @@ import com.saifai.engine.SaifEngineBootstrap
 class SaifApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        com.example.util.TaskNotifications.initialize(this)
         ProviderSettingsManager.init(this)
 
         // Initialize SAIF AI Sovereign Engine & Memory

@@ -147,7 +147,7 @@ fun VideoAiDirectorChatScreen(
                 Row(verticalAlignment =
     Alignment.CenterVertically, modifier =
     Modifier.weight(1f)) {
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = onBack,
                         modifier =
     Modifier
@@ -275,7 +275,7 @@ fun VideoAiDirectorChatScreen(
 
                 Row(verticalAlignment =
     Alignment.CenterVertically) {
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = {
                             android.widget.Toast.makeText(context, "AI Director latency: 12ms (Cloud Neural Engine)", android.widget.Toast.LENGTH_SHORT).show()
                         },
@@ -949,7 +949,7 @@ fun VideoAiDirectorChatScreen(
                     verticalAlignment =
     Alignment.CenterVertically
                 ) {
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = {
                             android.widget.Toast.makeText(context, "Attach reference clip", android.widget.Toast.LENGTH_SHORT).show()
                         },
@@ -961,7 +961,7 @@ fun VideoAiDirectorChatScreen(
     Modifier.size(20.dp))
                     }
 
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = {
                             android.widget.Toast.makeText(context, "Voice input ready", android.widget.Toast.LENGTH_SHORT).show()
                         },
@@ -993,7 +993,7 @@ fun VideoAiDirectorChatScreen(
     Modifier.weight(1f)
                     )
 
-                    IconButton(
+                    com.example.ui.components.MorphingIconButton(
                         onClick = {
                             val prompt = inputText.trim()
                             if (prompt.isNotBlank()) {

@@ -44,6 +44,7 @@ fun SaifAnimatedSplashOverlay(
         modifier =
     modifier.fillMaxSize()
     ) {
+        val identityColor = rememberIdentityColor()
         val logoScale = remember { Animatable(0.55f) }
         val logoAlpha = remember { Animatable(0f) }
         val titleAlpha = remember { Animatable(0f) }
@@ -123,7 +124,7 @@ fun SaifAnimatedSplashOverlay(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFF7C5CE0).copy(alpha = 0.28f),
+                            identityColor.copy(alpha = 0.28f),
                             Color(0xFF4F46E5).copy(alpha = 0.10f),
                             Color.Transparent
                         ),
@@ -308,7 +309,7 @@ fun SaifAnimatedSplashOverlay(
                                 .background(
                                     Brush.horizontalGradient(
                                         listOf(
-                                            Color(0xFF7C5CE0),
+                                            identityColor,
                                             Color(0xFFA78BFA),
                                             Color(0xFF38BDF8)
                                         )

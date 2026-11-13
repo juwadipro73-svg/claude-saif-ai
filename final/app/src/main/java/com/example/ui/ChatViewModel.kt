@@ -544,7 +544,13 @@ class ChatViewModel(
         activeGenerationJob = viewModelScope.launch {
             _isGenerating.value = true
             var sessionId: String? = null
+            val taskId = java.util.UUID.randomUUID().toString()
+            val appContext = context.applicationContext
+            var taskSuccessful = false
+            com.example.util.TaskNotifications.begin(taskId)
             try {
+                androidx.core.content.ContextCompat.startForegroundService(appContext,
+                    android.content.Intent(appContext, com.example.util.ChatTaskService::class.java))
                 com.example.saif.data.remote.AndroidLocalBridgeServer.instance.ensureLinuxCliReady(context)
                 com.example.github.GitHubIntegrationManager.init(context)
 
@@ -714,6 +720,7 @@ class ChatViewModel(
                     result
                 }
                 repository.insertMessage(ChatMessageEntity(sessionId = sessionId, role = "model", content = finalDeliveredResult))
+                taskSuccessful = true
                 com.example.util.SaifMemoryCore.learn(com.example.util.SaifMemoryCore.Features.CHAT, prompt, finalDeliveredResult)
                 val prefs = context.getSharedPreferences("SettingsPrefs", android.content.Context.MODE_PRIVATE)
                 if (prefs.getBoolean("autoSpeak", false)) com.example.utils.TTSManager.speak(finalDeliveredResult, context)
@@ -732,6 +739,8 @@ class ChatViewModel(
                 }
                 sessionId?.let { repository.insertMessage(ChatMessageEntity(sessionId = it, role = "model", content = "Antigravity error: ${error.localizedMessage ?: "Unknown error"}")) }
             } finally {
+                appContext.stopService(android.content.Intent(appContext, com.example.util.ChatTaskService::class.java))
+                com.example.util.TaskNotifications.finish(appContext, taskId, taskSuccessful)
                 _currentStreamingContent.value = ""
                 _isGenerating.value = false
             }

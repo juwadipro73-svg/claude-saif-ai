@@ -124,7 +124,7 @@ fun FloatingVoiceOverlay(
                 Spacer(modifier =
     Modifier.height(24.dp))
 
-                IconButton(
+                com.example.ui.components.MorphingIconButton(
                     onClick = onClose,
                     modifier =
     Modifier
