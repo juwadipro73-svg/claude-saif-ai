@@ -50,8 +50,10 @@ Android assistant by Tech GPTx under TAMCL v1.0. The owner wants the app to keep
 button, orb, screen share, on-device speech fallback) and wants its licence and credits kept.
 
 - Builds #6 to #8 were made without the module because a request of the owner was misread as "remove the code".
-  Build #9 restored the module, `licenses/TAMCL-1.0.txt` and every credit. Build #10 put the author's name back
-  in the places inside the module where an earlier edit had written "SAIF AI" instead. Do not remove them again.
+  Build #10 has the module, `licenses/TAMCL-1.0.txt` and every credit again, and names the author again in the
+  places inside the module where an earlier edit had written "SAIF AI" instead. Do not remove them again.
+  (There is no build #9: a new push cancels the build that is still running for the same branch, see
+  `concurrency` in `.github/workflows/build-apk.yml`.)
 - If an instruction about this module, its licence or its credits is unclear, ask the owner before deleting
   anything. Removing a feature is never the way to settle a credit or licence question.
 - The mismatch between the GPL and TAMCL v1.0 is described in section 8 of `THIRD_PARTY_NOTICES.md`. Keeping the
