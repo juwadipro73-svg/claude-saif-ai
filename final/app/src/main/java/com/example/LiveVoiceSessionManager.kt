@@ -417,7 +417,7 @@ class LiveVoiceSessionManager(
                             )
                         }
                     } catch (err: Exception) {
-                        Log.e(TAG, "Task execution failed: ${e.message}", e)
+                        Log.e(TAG, "Task execution failed: ${err.message}", err)
                         enqueueSentenceForSpeech("Task execute karne me dikkat aayi sir.")
                         playNextSentenceIfAvailable()
                     } finally {
@@ -577,11 +577,11 @@ SPOKEN RESPONSE FORMAT:
             playNextSentenceIfAvailable()
 
         } catch (err: Exception) {
-            if (e is CancellationException) {
+            if (err is CancellationException) {
                 Log.d(TAG, "Turn processing cancelled by user barge-in.")
                 return
             }
-            Log.e(TAG, "Error in processAudioTurn: ${e.message}", e)
+            Log.e(TAG, "Error in processAudioTurn: ${err.message}", err)
             _liveSubtitle.value = "LISTENING"
             _sessionState.value = VoiceSessionState.LISTENING
             turnManager.transitionTo(TurnState.LISTENING)
@@ -700,14 +700,14 @@ SPOKEN RESPONSE FORMAT:
             audioPipeline?.stop()
             audioPipeline = null
         } catch (err: Exception) {
-            Log.w(TAG, "AudioPipeline stop error: ${e.message}")
+            Log.w(TAG, "AudioPipeline stop error: ${err.message}")
         }
 
         try {
             audioManager?.mode = AudioManager.MODE_NORMAL
             audioManager?.isSpeakerphoneOn = false
         } catch (err: Exception) {
-            Log.w(TAG, "Audio manager reset error: ${e.message}")
+            Log.w(TAG, "Audio manager reset error: ${err.message}")
         }
 
         TTSManager.stop()

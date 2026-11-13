@@ -189,7 +189,7 @@ object AppCompilerEngine {
                             xmlFile.writeText(sanitizedContent)
                             emit("Auto-healed XML file headers in ${xmlFile.name}")
                         } catch (err: Exception) {
-                            e.printStackTrace()
+                            err.printStackTrace()
                         }
                     }
                     val xmlErr = validateXmlSyntax(xmlFile.name, sanitizedContent)
@@ -544,9 +544,9 @@ object AppCompilerEngine {
                 durationMs = durationMs
             )
         } catch (err: Exception) {
-            emit("[CRITICAL] Build failed: ${e.message}", isError = true)
+            emit("[CRITICAL] Build failed: ${err.message}", isError = true)
             BuildResult.Error(
-                message = e.message ?: "Unknown build failure",
+                message = err.message ?: "Unknown build failure",
                 fileName = null,
                 lineNumber = null,
                 errorStep = BuildStep.APK_PACKAGING,
@@ -607,8 +607,8 @@ object AppCompilerEngine {
             Toast.makeText(context, "Opening Package Installer...\n(Play Protect: if you see 'Blocked', tap 'More details' → 'Install anyway')", Toast.LENGTH_LONG).show()
             return true
         } catch (err: Exception) {
-            e.printStackTrace()
-            Toast.makeText(context, "Installer: ${e.message}", Toast.LENGTH_LONG).show()
+            err.printStackTrace()
+            Toast.makeText(context, "Installer: ${err.message}", Toast.LENGTH_LONG).show()
             return false
         }
     }
@@ -728,7 +728,7 @@ object AppCompilerEngine {
     Intent.FLAG_ACTIVITY_NEW_TASK
             })
         } catch (err: Exception) {
-            Toast.makeText(context, "Share error: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Share error: ${err.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -914,7 +914,7 @@ object AppCompilerEngine {
             }
             zipFile
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
             null
         }
     }
@@ -1056,7 +1056,7 @@ $stringFields
                 return resIcon.readBytes()
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
         return generateDefaultLauncherIcon(project.appName)
     }

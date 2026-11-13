@@ -66,7 +66,7 @@ object ContactAliasStore {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Contact query failed: ${e.message}")
+            Log.w(TAG, "Contact query failed: ${err.message}")
         }
 
         return results
@@ -89,7 +89,7 @@ object ContactAliasStore {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Failed reading contact names for STT bias: ${e.message}")
+            Log.w(TAG, "Failed reading contact names for STT bias: ${err.message}")
         }
         return names
     }

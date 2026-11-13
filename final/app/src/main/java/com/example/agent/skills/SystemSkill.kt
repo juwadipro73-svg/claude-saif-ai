@@ -65,7 +65,7 @@ object SystemSkill : Skill {
                     context.startActivity(intent)
                     SkillResult(true, "Alarm set for %02d:%02d".format(hour, minute))
                 } catch (err: Exception) {
-                    SkillResult(false, "Could not set alarm: ${e.message}")
+                    SkillResult(false, "Could not set alarm: ${err.message}")
                 }
             }
             "set_timer" -> {
@@ -82,7 +82,7 @@ object SystemSkill : Skill {
                     context.startActivity(intent)
                     SkillResult(true, "Timer set for $seconds seconds")
                 } catch (err: Exception) {
-                    SkillResult(false, "Could not set timer: ${e.message}")
+                    SkillResult(false, "Could not set timer: ${err.message}")
                 }
             }
             "open_wifi" -> {
@@ -129,8 +129,8 @@ object SystemSkill : Skill {
                 SkillResult(false, "Flashlight control requires Android M+")
             }
         } catch (err: Exception) {
-            Log.e(TAG, "Error toggling flashlight: ${e.message}")
-            SkillResult(false, "Failed to control flashlight: ${e.message}")
+            Log.e(TAG, "Error toggling flashlight: ${err.message}")
+            SkillResult(false, "Failed to control flashlight: ${err.message}")
         }
     }
 }

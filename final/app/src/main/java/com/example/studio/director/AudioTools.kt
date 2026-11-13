@@ -173,7 +173,7 @@ object Transcriber {
             throw e
         } catch (err: Exception) {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
-            Result.failure(IllegalStateException("Transcription failed: ${e.javaClass.simpleName}"))
+            Result.failure(IllegalStateException("Transcription failed: ${err.javaClass.simpleName}"))
         }
     }
 

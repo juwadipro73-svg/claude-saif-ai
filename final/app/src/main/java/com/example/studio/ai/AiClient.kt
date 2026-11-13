@@ -59,7 +59,7 @@ class AiClient(private val profile: AiProfile) {
         } catch (e: CancellationException) {
             throw e
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         }
     }
 
@@ -71,6 +71,6 @@ class AiClient(private val profile: AiProfile) {
                 imagesBase64 = imagesBase64.toList(), jsonMode = false)
             val res = LlmGateway.call(role, profile.provider, profile.apiKey, profile.activeModel, req)
             if (res.isSuccess) Result.success(res.getOrThrow().text) else Result.failure(res.exceptionOrNull() ?: Exception("Vision call failed"))
-        } catch (e: CancellationException) { throw e } catch (err: Exception) { Result.failure(e) }
+        } catch (e: CancellationException) { throw e } catch (err: Exception) { Result.failure(err) }
     }
 }

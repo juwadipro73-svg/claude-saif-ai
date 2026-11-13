@@ -127,7 +127,7 @@ object AutonomousScreenAgent {
                 planSteps = parsePlanFromJson(raw)
             }
         } catch (err: Exception) {
-            Log.w(TAG, "AI planning call failed: ${e.message}")
+            Log.w(TAG, "AI planning call failed: ${err.message}")
         }
 
         // If API returned no steps or offline, use smart deterministic fallback
@@ -157,7 +157,7 @@ object AutonomousScreenAgent {
                     try {
                         com.example.utils.TTSManager.speak(step.spokenUpdate, context)
                     } catch (err: Exception) {
-                        Log.w(TAG, "TTS speak failed for step update: ${e.message}")
+                        Log.w(TAG, "TTS speak failed for step update: ${err.message}")
                     }
                     onProgress?.invoke(step, step.spokenUpdate)
                     delay(600L)
@@ -170,8 +170,8 @@ object AutonomousScreenAgent {
                 // Natural human interaction delay between steps
                 delay(450L)
             } catch (err: Exception) {
-                Log.e(TAG, "Error in step ${step.stepIndex}: ${e.message}", e)
-                results.add("Step ${step.stepIndex} Error: ${e.message}")
+                Log.e(TAG, "Error in step ${step.stepIndex}: ${err.message}", err)
+                results.add("Step ${step.stepIndex} Error: ${err.message}")
             }
         }
 
@@ -392,7 +392,7 @@ object AutonomousScreenAgent {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Error parsing plan JSON: ${e.message}")
+            Log.w(TAG, "Error parsing plan JSON: ${err.message}")
         }
         return steps
     }

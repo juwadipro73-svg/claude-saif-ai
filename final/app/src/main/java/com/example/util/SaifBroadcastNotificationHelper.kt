@@ -99,7 +99,7 @@ object SaifBroadcastNotificationHelper {
                 false
             }
         } catch (err: Exception) {
-            Log.e(TAG, "Failed to post broadcast notification", e)
+            Log.e(TAG, "Failed to post broadcast notification", err)
             false
         }
     }

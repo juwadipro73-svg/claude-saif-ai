@@ -20,5 +20,6 @@ data class ChatMessageEntity(
         Boolean = false,
     val toolCallsJson: String? = null,
     val attachmentsJson: String? = null,
+    val attachmentUris: String? = null,
     @androidx.room.ColumnInfo(defaultValue = "0") val isBookmarked: Boolean = false
 )

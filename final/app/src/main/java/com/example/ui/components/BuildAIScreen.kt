@@ -214,7 +214,7 @@ fun BuildAIScreen(
                 tempCameraUri = uri
                 cameraLauncher.launch(uri)
             } catch (err: Exception) {
-                Toast.makeText(context, "Camera open karne me samasya: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Camera open karne me samasya: ${err.message}", Toast.LENGTH_SHORT).show()
             }
         } else {
             Toast.makeText(context, "Camera permission is required", Toast.LENGTH_SHORT).show()
@@ -883,7 +883,7 @@ fun BuildAIScreen(
                                 tempCameraUri = uri
                                 cameraLauncher.launch(uri)
                             } catch (err: Exception) {
-                                Toast.makeText(context, "Camera open karne me samasya: ${e.message}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Camera open karne me samasya: ${err.message}", Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)

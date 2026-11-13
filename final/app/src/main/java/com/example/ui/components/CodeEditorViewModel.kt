@@ -144,8 +144,8 @@ class CodeEditorViewModel : ViewModel() {
                 loadFileInternal(context, projectDir, mainFile, defaultFile.initialCode)
 
             } catch (err: Exception) {
-                e.printStackTrace()
-                _statusMessage.emit("Error initializing project: ${e.localizedMessage ?: "Unknown error"}")
+                err.printStackTrace()
+                _statusMessage.emit("Error initializing project: ${err.localizedMessage ?: "Unknown error"}")
             }
         }
     }
@@ -221,8 +221,8 @@ class CodeEditorViewModel : ViewModel() {
                 _isDirty.value = false
             }
         } catch (err: Exception) {
-            e.printStackTrace()
-            _statusMessage.emit("Failed to load ${file.name}: ${e.message}")
+            err.printStackTrace()
+            _statusMessage.emit("Failed to load ${file.name}: ${err.message}")
         } finally {
             _isLoadingFile.value = false
         }
@@ -306,9 +306,9 @@ class CodeEditorViewModel : ViewModel() {
             _isDirty.value = false
             _lastSavedTimestamp.value = System.currentTimeMillis()
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
             viewModelScope.launch {
-                _statusMessage.emit("Save failed: ${e.message}")
+                _statusMessage.emit("Save failed: ${err.message}")
             }
         }
     }
@@ -390,8 +390,8 @@ class CodeEditorViewModel : ViewModel() {
                 loadFileInternal(context, projectDir, newItem, initialContent)
                 _statusMessage.emit("Created $fileName")
             } catch (err: Exception) {
-                e.printStackTrace()
-                _statusMessage.emit("Failed to create file: ${e.message}")
+                err.printStackTrace()
+                _statusMessage.emit("Failed to create file: ${err.message}")
             }
         }
     }

@@ -73,7 +73,7 @@ class SaifLocalBridgeServer private constructor() {
                 }
             }
         } catch (err: Exception) {
-            Log.e(TAG, "Failed starting SAIF AI Bridge Server", e)
+            Log.e(TAG, "Failed starting SAIF AI Bridge Server", err)
         }
     }
 

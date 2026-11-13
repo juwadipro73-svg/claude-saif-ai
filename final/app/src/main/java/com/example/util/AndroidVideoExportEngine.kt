@@ -218,8 +218,8 @@ object AndroidVideoExportEngine {
 
             bitmap.recycle()
         } catch (err: Exception) {
-            Log.e(TAG, "Video Export exception: ${e.message}", e)
-            failureReason = e.message
+            Log.e(TAG, "Video Export exception: ${err.message}", err)
+            failureReason = err.message
         }
 
         if (!exportSuccess || !tempOutputFile.exists()) {
@@ -533,7 +533,7 @@ object AndroidVideoExportEngine {
 
             return itemUri
         } catch (err: Exception) {
-            Log.e(TAG, "Error saving media to MediaStore: ${e.message}", e)
+            Log.e(TAG, "Error saving media to MediaStore: ${err.message}", err)
             return null
         }
     }

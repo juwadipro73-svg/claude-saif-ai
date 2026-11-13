@@ -1410,7 +1410,7 @@ fun decodeUriToBitmap(context: Context, uri: Uri, maxDim: Int = 1280): Bitmap? {
             BitmapFactory.decodeStream(stream, null, decodeOptions)
         }
     } catch (err: Exception) {
-        e.printStackTrace()
+        err.printStackTrace()
         null
     }
 }

@@ -55,7 +55,7 @@ object ProjectDataManager {
             // Ensure physical starter layout, activity, and manifest exist immediately
             ensureProjectScaffolded(context, project)
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
     }
 
@@ -195,7 +195,7 @@ public class MainActivity extends Activity {
                 )
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
     }
 
@@ -238,7 +238,7 @@ public class MainActivity extends Activity {
                 if (parsed != null) return parsed.copy(iconBitmap = icon ?: parsed.iconBitmap)
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
 
         // Fallback default ProjectData if project directory or pref exists
@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
                 oldDir.renameTo(newDir)
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
 
         saveProject(context, updatedProject)
@@ -300,7 +300,7 @@ public class MainActivity extends Activity {
                 projectDir.deleteRecursively()
             }
         } catch (err: Exception) {
-            e.printStackTrace()
+            err.printStackTrace()
         }
     }
 

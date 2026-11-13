@@ -28,7 +28,7 @@ object PlaybookStore {
             isLoaded = true
             Log.d(TAG, "PlaybookStore loaded ${playbooks.size} app playbooks")
         } catch (err: Exception) {
-            Log.w(TAG, "Failed to load agent playbooks: ${e.message}")
+            Log.w(TAG, "Failed to load agent playbooks: ${err.message}")
         }
     }
 

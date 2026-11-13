@@ -165,7 +165,7 @@ object SaifAiEditingEngine {
                         Log.w(TAG, "LlmGateway call returned error: ${response.exceptionOrNull()?.message}")
                     }
                 } catch (err: Exception) {
-                    Log.w(TAG, "LLM online call fallback to algorithmic planner: ${e.message}")
+                    Log.w(TAG, "LLM online call fallback to algorithmic planner: ${err.message}")
                 }
             }
 
@@ -190,7 +190,7 @@ object SaifAiEditingEngine {
                         }
                     }
                 } catch (err: Exception) {
-                    Log.w(TAG, "AIApiUtility executeWithFallback exception: ${e.message}")
+                    Log.w(TAG, "AIApiUtility executeWithFallback exception: ${err.message}")
                 }
             }
 
@@ -212,8 +212,8 @@ object SaifAiEditingEngine {
             onProgressPhase("Plan Finalized & Ready to Execute", 1.0f)
             Result.success(parsedPlan)
         } catch (err: Exception) {
-            Log.e(TAG, "Error in planAndStreamEdit", e)
-            Result.failure(e)
+            Log.e(TAG, "Error in planAndStreamEdit", err)
+            Result.failure(err)
         }
     }
 
@@ -526,8 +526,8 @@ object SaifAiEditingEngine {
 
             Result.failure(Exception("Script generation failed: please verify your AI Provider in Settings."))
         } catch (err: Exception) {
-            Log.e(TAG, "generateScript error", e)
-            Result.failure(e)
+            Log.e(TAG, "generateScript error", err)
+            Result.failure(err)
         }
     }
 
@@ -626,7 +626,7 @@ Output strictly valid JSON with keys:
                     edlPlan = TelegramAssetManager.parseEdlJson(rawText)
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Autonomous AI Director execution exception: ${e.message}")
+                Log.w(TAG, "Autonomous AI Director execution exception: ${err.message}")
             }
 
             // Fallback to high-retention algorithmic EDL synthesizer if offline or key absent
@@ -686,8 +686,8 @@ Output strictly valid JSON with keys:
             onStepUpdate("✅ Master Director Video Ready!", 1.0f)
             Result.success(Pair(finalEdl, projectData))
         } catch (err: Exception) {
-            Log.e(TAG, "generateAutonomousDirectorEdl error", e)
-            Result.failure(e)
+            Log.e(TAG, "generateAutonomousDirectorEdl error", err)
+            Result.failure(err)
         }
     }
 
@@ -2038,7 +2038,7 @@ $opsJson
                 why = why
             )
         } catch (err: Exception) {
-            Log.e(TAG, "parseAndSanitizePlan fallback", e)
+            Log.e(TAG, "parseAndSanitizePlan fallback", err)
             synthesizeFallbackPlan(project, userPrompt)
         }
     }

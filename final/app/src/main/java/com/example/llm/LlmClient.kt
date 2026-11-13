@@ -486,7 +486,7 @@ object LlmClient {
                         throw e
                     } catch (err: Exception) {
                         currentCoroutineContext().ensureActive()
-                        Log.w(TAG, "Non-streaming fallback failed: ${e.message}")
+                        Log.w(TAG, "Non-streaming fallback failed: ${err.message}")
                     }
                 }
 
@@ -513,7 +513,7 @@ object LlmClient {
                 throw e
             } catch (err: Exception) {
                 currentCoroutineContext().ensureActive()
-                val err = parseException(profile.displayName, cleanModel, e)
+                val err = parseException(profile.displayName, cleanModel, err)
                 lastError = err
                 if (attemptCount < maxAttempts && (err.category == LlmErrorCategory.NETWORK || err.category == LlmErrorCategory.TIMEOUT)) {
                     delay(1500L)

@@ -1,5 +1,38 @@
 # Build status (honest)
 
+## Active branch compilation follow-up — 2026-11-13
+
+Branch: `arena/a95718fa-claude-saif-ai`. Latest compiled source: `76b97c8`.
+
+**Build still fails; there is no APK artifact.**
+Latest run: https://github.com/juwadipro73-svg/claude-saif-ai/actions/runs/43430575836
+
+Two new GitHub builds ran in this continuation. The first reported 604 Kotlin diagnostics;
+the second reports 469 diagnostics across 24 files (including cascading errors). No tests ran.
+
+Completed in this continuation:
+- Repaired exception-variable references and malformed Material color references.
+- Consolidated the duplicate native chat models through shared domain contracts; serializable
+  messages/tools/attachments now match the custom API engine, and transcript state is mutable.
+- Fixed speech-router scope, native markdown loop variables, icon references and edge-to-edge invocation.
+- Added the attachment URI field with a preserving Room 6-to-7 migration.
+- Added a real bounded, cancellable native shell command implementation with concurrent output draining.
+- Removed false Linux-ready answers. This source does not implement a Linux installer, so CLI-provider
+  setup reports that limitation rather than claiming an installation succeeded.
+- Updated the CI trigger to support active Arena branches and report diagnostic counts by file.
+
+Remaining diagnostics are concentrated in old hub-dependent consumers:
+- ChatViewModel: 137; AntigravityLlmBridge: 37.
+- HomeAgentFeed: 41; SaifAiApp: 46; SaifEngineScreens: 67.
+- SaifSkillsEngine: 49; SaifLocalBridgeServer: 18.
+- Other settings, provider, media and notification components: 74 combined.
+
+Required next architectural step: replace stale hub-only chat/auth/quotas/feed contracts with the
+native custom-API flow, preserving account isolation, tool approvals and stored history. Do not add
+fake successful hub/network/installer stubs to silence the compiler. Then repair the remaining native
+skills, bridge, settings and utility call sites and rerun compilation. APK publication is still blocked.
+
+
 ## GitHub Actions build attempt — 2026-11-13
 
 An actual `:app:assembleStandardDebug` build was attempted on the current Arena branch, using GitHub's Ubuntu runner, JDK 21 and preinstalled Android SDK. It **failed compilation; no APK was generated**. No unit/device tests ran.

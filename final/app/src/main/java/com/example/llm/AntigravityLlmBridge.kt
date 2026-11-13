@@ -176,7 +176,7 @@ object AntigravityLlmBridge {
                 )
             )
         } catch (err: Exception) {
-            Result.failure(e)
+            Result.failure(err)
         } finally {
             runCatching { backend.stopStreaming() }
             scope.cancel()

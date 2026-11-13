@@ -203,7 +203,7 @@ object SttRouter {
             } catch (e: CancellationException) {
                 throw e
             } catch (err: Exception) {
-                lastFailureReason = e.message ?: "Network error"
+                lastFailureReason = err.message ?: "Network error"
                 Log.w(TAG, "Attempt with ${candidate.service} failed: $lastFailureReason")
             }
         }
@@ -212,7 +212,6 @@ object SttRouter {
             lastFailureReason = "No speech-to-text API provider configured. Add an OpenAI, Groq or Gemini speech key in settings."
         }
         SttResult("", latencyMs = System.currentTimeMillis() - start, rejectedReason = lastFailureReason)
-    }
     }
 
     private enum class SttServiceType { GROQ, OPENAI, GEMINI }

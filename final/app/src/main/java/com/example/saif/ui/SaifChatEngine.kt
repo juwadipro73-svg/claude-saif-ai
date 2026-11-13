@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
 /**
  * 100% Original SAIF AI Chat ViewModel.
@@ -114,7 +115,7 @@ fun SaifMarkdown(
             }
 
             if (inCodeBlock) {
-                codeBuffer.add(line)
+                codeBuffer.add(rawLine)
                 continue
             }
 
@@ -183,7 +184,7 @@ fun SaifMarkdown(
                 trimmed.isNotBlank() -> {
                     SelectionContainer(modifier = Modifier) {
                         Text(
-                            text = parseInlineMarkdown(line),
+                            text = parseInlineMarkdown(rawLine),
                             style = MaterialTheme.typography.bodyMedium,
                             color = textColor
                         )

@@ -20,7 +20,7 @@ object AgentLogger {
             if (!dir.exists()) dir.mkdirs()
             traceDir = dir
         } catch (err: Exception) {
-            Log.w(TAG, "Failed to initialize trace directory: ${e.message}")
+            Log.w(TAG, "Failed to initialize trace directory: ${err.message}")
         }
     }
 

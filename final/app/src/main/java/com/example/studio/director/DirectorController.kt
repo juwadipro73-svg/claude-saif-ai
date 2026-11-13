@@ -832,7 +832,7 @@ class DirectorController(
             activityBus.finish(event)
         } catch (err: Exception) {
             activityBus.finish(event, ActivityState.FAILED, "Could not apply the project")
-            throw e
+            throw err
         }
         update { copy(applied = true, readyToApply = false) }
         say("Added to your timeline. Press Play in the editor to preview. You can reopen this chat any time to revise scenes.")

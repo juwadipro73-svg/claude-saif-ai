@@ -337,7 +337,7 @@ object ScreenObserver {
             try {
                 processNode(root, -1)
             } catch (err: Exception) {
-                Log.w(TAG, "Error visiting window root: ${e.message}")
+                Log.w(TAG, "Error visiting window root: ${err.message}")
             }
         }
 

@@ -69,7 +69,7 @@ object MediaInspector {
                 } finally { r.release() }
             }
         } catch (err: Exception) {
-            MediaProbe(false, kind, sizeBytes = file.length(), error = "Decode failed: ${e.javaClass.simpleName}")
+            MediaProbe(false, kind, sizeBytes = file.length(), error = "Decode failed: ${err.javaClass.simpleName}")
         }
     }
 

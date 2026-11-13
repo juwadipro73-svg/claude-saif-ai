@@ -62,7 +62,7 @@ object AppLauncher {
                     return LaunchResult(true, targetPackage, "App opened successfully: $targetPackage")
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Rung 1 launch failed: ${e.message}")
+                Log.w(TAG, "Rung 1 launch failed: ${err.message}")
             }
         }
 
@@ -76,7 +76,7 @@ object AppLauncher {
                     return LaunchResult(true, targetPackage, "App opened successfully: $targetPackage")
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Rung 2 launch failed: ${e.message}")
+                Log.w(TAG, "Rung 2 launch failed: ${err.message}")
             }
         }
 
@@ -104,7 +104,7 @@ object AppLauncher {
                     return LaunchResult(true, targetPackage, "App opened successfully: $targetPackage")
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Rung 3 launch failed: ${e.message}")
+                Log.w(TAG, "Rung 3 launch failed: ${err.message}")
             }
         }
 
@@ -124,7 +124,7 @@ object AppLauncher {
                     }
                 }
             } catch (err: Exception) {
-                Log.w(TAG, "Rung 4 UI fallback failed: ${e.message}")
+                Log.w(TAG, "Rung 4 UI fallback failed: ${err.message}")
             }
         }
 

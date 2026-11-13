@@ -59,7 +59,7 @@ object AppResolver {
                 list.add(AppEntry(label = label, packageName = pkg, activityName = act))
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Error querying launcher activities: ${e.message}")
+            Log.w(TAG, "Error querying launcher activities: ${err.message}")
         }
 
         cachedApps = list

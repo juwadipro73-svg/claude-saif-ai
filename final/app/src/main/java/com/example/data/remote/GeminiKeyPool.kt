@@ -44,7 +44,7 @@ object GeminiKeyPool {
                 }
             }
         } catch (err: Exception) {
-            Log.w(TAG, "Error loading provider keys: ${e.message}")
+            Log.w(TAG, "Error loading provider keys: ${err.message}")
         }
 
         // 2. From BuildConfig

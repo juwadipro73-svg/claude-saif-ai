@@ -209,7 +209,7 @@ object StudioExportEngine {
                     codec.start()
                     return codec to name
                 } catch (err: Exception) {
-                    lastError = e
+                    lastError = err
                     runCatching { codec?.release() }
                 }
             }
@@ -403,7 +403,7 @@ object StudioExportEngine {
             cleanup(); throw e
         } catch (err: Exception) {
             cleanup()
-            ExportResult(success = false, errorMessage = "Export failed: ${e.message ?: e.javaClass.simpleName}")
+            ExportResult(success = false, errorMessage = "Export failed: ${err.message ?: err.javaClass.simpleName}")
         }
     }
 
@@ -426,7 +426,7 @@ object StudioExportEngine {
             if (expectAudio && r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO) == null)
                 warnings += "The project has audio but the exported file reports no audio track."
         } catch (err: Exception) {
-            return "Verification failed: ${e.message ?: e.javaClass.simpleName}"
+            return "Verification failed: ${err.message ?: err.javaClass.simpleName}"
         } finally { r.release() }
 
         // Colour tags: confirm the stream is tagged BT.709 (not the old "gbr"/unspecified output).
