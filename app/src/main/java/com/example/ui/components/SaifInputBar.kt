@@ -110,6 +110,7 @@ fun SaifInputBar(
     isGenerating: Boolean,
     onStop: () -> Unit,
     onVoiceRecorded: (java.io.File) -> Unit,
+    onStartLiveVoice: () -> Unit,
     onGalleryClick: () -> Unit,
     onFileClick: () -> Unit,
     onVideoClick: () -> Unit,
@@ -475,9 +476,9 @@ fun SaifInputBar(
                         }
                     Spacer(modifier = Modifier.width(6.dp))
 
-                    // Stop / Send / "listening" indicator / idle (nothing to send yet)
+                    // Stop / Send / Live voice
                     AnimatedContent(
-                        targetState = if (isGenerating) 0 else if (canSend) 1 else if (isListening) 2 else 3,
+                        targetState = if (isGenerating) 0 else if (canSend) 1 else 2,
                         transitionSpec = { (fadeIn(tween(160)) + scaleIn(initialScale = 0.78f, animationSpec = tween(180))) togetherWith fadeOut(tween(90)) },
                         label = "actionMorph"
                     ) { actionState ->
@@ -517,14 +518,24 @@ fun SaifInputBar(
                                 )
                             }
                         }
-                    } else if (actionState == 2) {
-                        // Dictation is running and nothing is typed yet: the moving sound wave shows that the
-                        // microphone is listening; a tap stops it.
+                    } else {
+                        val liveBreath = rememberInfiniteTransition(label = "liveBreath")
+                        val liveScale by liveBreath.animateFloat(
+                            initialValue = 1f,
+                            targetValue = 1.06f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1100, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "liveBreathScale"
+                        )
                         Surface(
-                            onClick = { stopListeningNow() },
+                            onClick = {
+                                if (isListening) stopListeningNow() else onStartLiveVoice()
+                            },
                             shape = CircleShape,
                             color = Color.Transparent,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(36.dp).scale(liveScale)
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -532,23 +543,7 @@ fun SaifInputBar(
                                     Brush.linearGradient(listOf(Color(0xFF7C5CE0), Color(0xFF5E43BD), Color(0xFF9B82EC)))
                                 )
                             ) {
-                                SoundWaveIcon(isAnimated = true, rms = rmsValue)
-                            }
-                        }
-                    } else {
-                        // Nothing to send yet: the send button is shown dimmed and does nothing.
-                        Surface(
-                            shape = CircleShape,
-                            color = purple.copy(alpha = 0.32f),
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.ArrowUpward,
-                                    contentDescription = "Send (type a message first)",
-                                    tint = Color.White.copy(alpha = 0.75f),
-                                    modifier = Modifier.size(19.dp)
-                                )
+                                SoundWaveIcon(isAnimated = isListening, rms = rmsValue)
                             }
                         }
                     }

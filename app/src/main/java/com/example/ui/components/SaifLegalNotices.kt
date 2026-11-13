@@ -15,6 +15,7 @@ object SaifLegalNotices {
     val PAGES: List<Pair<String, String>> = listOf(
         "Credits" to CREDITS_PAGE,
         "GPL-3.0 (SAIF AI)" to LICENSE_PAGE,
+        "TAMCL-1.0 (Tech GPTx)" to "licenses/TAMCL-1.0.txt",
         "Apache-2.0" to "licenses/Apache-2.0.txt",
         "LGPL-2.1" to "licenses/LGPL-2.1.txt",
         "LGPL-3.0" to "licenses/LGPL-3.0.txt",
@@ -27,7 +28,7 @@ object SaifLegalNotices {
 
     /** Shown at the bottom of Settings. The GPL asks for a visible copyright, no-warranty and licence notice. */
     const val SHORT_NOTICE =
-        "Copyright (C) 2026 SAIF AI and contributors. Built on AntiGem by Santosh Kurmi (GPLv3). Free software " +
-            "under the GNU GPL v3 or later, with ABSOLUTELY NO WARRANTY. Tap to read the licences, the credits " +
-            "and where to get the source code."
+        "Copyright (C) 2026 SAIF AI and contributors. Built on AntiGem by Santosh Kurmi (GPLv3) and the JARVIS AI " +
+            "Android assistant by Tech GPTx (TAMCL v1.0). Free software under the GNU GPL v3 or later, with " +
+            "ABSOLUTELY NO WARRANTY. Tap to read the licences, the credits and where to get the source code."
 }

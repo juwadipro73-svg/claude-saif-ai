@@ -8700,7 +8700,7 @@ private fun AboutSubScreen(
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Legal notices & source", style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold)
-                Text("SAIF AI is free software under the GNU GPL v3 or later. It is built on AntiGem by Santosh Kurmi (GPLv3) and uses other open-source components. Their copyright and licence terms stay with the code, and the source of this build is available to everyone who receives the app.",
+                Text("SAIF AI is free software under the GNU GPL v3 or later. It is built on AntiGem by Santosh Kurmi (GPLv3) and the JARVIS AI Android assistant by Tech GPTx (TAMCL v1.0), and uses other open-source components. Their copyright and licence terms stay with the code, and the source of this build is available to everyone who receives the app.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick = { legalPage = "THIRD_PARTY_NOTICES.md" }) {

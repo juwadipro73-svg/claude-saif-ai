@@ -102,7 +102,7 @@ object PermissionManager {
             PermissionItemInfo(
                 id = "mic",
                 title = "Microphone (माइक्रोफ़ोन)",
-                description = "Voice typing and \"Hey Saif\" voice commands",
+                description = "Listen for live conversation and \"Hey Saif\" voice commands",
                 iconName = "mic",
                 isGranted = hasRecordAudio(context),
                 manifestPermission = Manifest.permission.RECORD_AUDIO
@@ -191,7 +191,7 @@ object PermissionManager {
                 PermissionItemInfo(
                     id = "post_notifications",
                     title = "System Notifications (सूचना भेजना)",
-                    description = "Show alerts for background tasks and updates",
+                    description = "Show alerts for the live voice service and task updates",
                     iconName = "notifications_active",
                     isGranted = hasPostNotifications(context),
                     manifestPermission = Manifest.permission.POST_NOTIFICATIONS

@@ -334,8 +334,7 @@ class DirectSpeechInputEngine(
                             } else {
                                 _micState.value = MicState.IDLE
                                 if (sttResult.rejectedReason != null && !sttResult.rejectedReason.contains("Ghost phrase") && !sttResult.rejectedReason.contains("Empty")) {
-                                    // Long enough to read "which key is needed" when no provider can transcribe.
-                                    Toast.makeText(context, sttResult.rejectedReason, Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, sttResult.rejectedReason, Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
