@@ -16,6 +16,7 @@ import android.os.HandlerThread
 import android.os.SystemClock
 import android.util.Log
 import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -95,9 +96,14 @@ class LiveScreenCapture(
             lastFrameAt = now
             val plane = image.planes[0]
             // A row can be longer than the picture is wide; the extra pixels are cut off again below.
-            val rowPixels = plane.rowStride / plane.pixelStride
+            val rowPixels = (plane.rowStride / plane.pixelStride).coerceAtLeast(image.width)
             val full = Bitmap.createBitmap(rowPixels, image.height, Bitmap.Config.ARGB_8888)
-            full.copyPixelsFromBuffer(plane.buffer)
+            // On some phones the last row comes without its padding, so the buffer is a little short of what the
+            // bitmap asks for. It is then copied into one of the full length.
+            val needed = rowPixels * image.height * 4
+            val source = plane.buffer
+            val pixels = if (source.remaining() >= needed) source else ByteBuffer.allocate(needed).also { it.put(source); it.rewind() }
+            full.copyPixelsFromBuffer(pixels)
             val picture = if (rowPixels != image.width) Bitmap.createBitmap(full, 0, 0, image.width, image.height) else full
             val jpeg = ByteArrayOutputStream(96 * 1024)
             picture.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, jpeg)
